@@ -13,12 +13,17 @@ export PATH="$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:$PATH"
 # Allow nested Claude sessions (orchestrator spawns Claude CLI agents)
 unset CLAUDECODE 2>/dev/null || true
 
-# Source only API keys (avoid slow nvm/compinit from .zshrc)
+# Source API keys from .env.openagent (works on both Mac and VPS)
+ENV_FILE="$HOME/.env.openagent"
+if [ -f "$ENV_FILE" ]; then
+  set -a
+  source "$ENV_FILE"
+  set +a
+fi
+
+# Fallback: try .zshrc for local Mac dev
 export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-$(grep 'ANTHROPIC_API_KEY' "$HOME/.zshrc" 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/' || echo '')}"
 export APIFY_API_KEY="${APIFY_API_KEY:-$(grep 'APIFY_API_KEY' "$HOME/.zshrc" 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/' || echo '')}"
-export BRAVE_API_KEY_1="${BRAVE_API_KEY_1:-}"
-export BRAVE_API_KEY_2="${BRAVE_API_KEY_2:-}"
-export DASHSCOPE_API_KEY="${DASHSCOPE_API_KEY:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
