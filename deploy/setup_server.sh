@@ -48,11 +48,19 @@ log "Step 1/7: Installing system packages..."
 apt-get update -qq
 apt-get install -y -qq \
   build-essential git curl wget unzip jq \
-  python3.11 python3.11-venv python3.11-dev \
-  python3-pip \
+  software-properties-common \
   ufw fail2ban \
   supervisor logrotate \
   ca-certificates gnupg lsb-release
+
+# Python 3.12 (default on Ubuntu 24.04) or add deadsnakes for 3.11+
+if ! command -v python3 &>/dev/null; then
+  apt-get install -y -qq python3 python3-venv python3-dev python3-pip
+else
+  apt-get install -y -qq python3-venv python3-dev python3-pip 2>/dev/null || true
+fi
+PYTHON_CMD=$(command -v python3)
+log "Python: $($PYTHON_CMD --version)"
 
 # Node 20 via nodesource
 if ! command -v node &>/dev/null || ! node --version | grep -q "v20"; then
@@ -61,7 +69,7 @@ if ! command -v node &>/dev/null || ! node --version | grep -q "v20"; then
   apt-get install -y -qq nodejs
 fi
 
-log "Python: $(python3.11 --version) | Node: $(node --version) | npm: $(npm --version)"
+log "Python: $($PYTHON_CMD --version) | Node: $(node --version) | npm: $(npm --version)"
 
 # ═══════════════════════════════════════════════════════════════════
 # STEP 2: Create deploy user
@@ -121,9 +129,9 @@ log "Step 4/7: Installing dependencies..."
 
 # OPENAGENT dependencies (dashboard)
 if [ -f "$OPENAGENT_DIR/dashboard/requirements.txt" ]; then
-  su - "$DEPLOY_USER" -c "cd $OPENAGENT_DIR/dashboard && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt"
+  su - "$DEPLOY_USER" -c "cd $OPENAGENT_DIR/dashboard && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"
 else
-  su - "$DEPLOY_USER" -c "cd $OPENAGENT_DIR/dashboard && python3.11 -m venv .venv && .venv/bin/pip install flask"
+  su - "$DEPLOY_USER" -c "cd $OPENAGENT_DIR/dashboard && python3 -m venv .venv && .venv/bin/pip install flask"
   log "No requirements.txt for dashboard — installed flask"
 fi
 
@@ -131,9 +139,9 @@ fi
 FORTRESS_ENGINE="$NFTS_DIR/packages/engine"
 if [ -d "$FORTRESS_ENGINE" ]; then
   if [ -f "$FORTRESS_ENGINE/requirements.txt" ]; then
-    su - "$DEPLOY_USER" -c "cd $FORTRESS_ENGINE && python3.11 -m venv .venv && .venv/bin/pip install -r requirements.txt"
+    su - "$DEPLOY_USER" -c "cd $FORTRESS_ENGINE && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt"
   elif [ -f "$FORTRESS_ENGINE/pyproject.toml" ]; then
-    su - "$DEPLOY_USER" -c "cd $FORTRESS_ENGINE && python3.11 -m venv .venv && .venv/bin/pip install -e ."
+    su - "$DEPLOY_USER" -c "cd $FORTRESS_ENGINE && python3 -m venv .venv && .venv/bin/pip install -e ."
   fi
   log "Fortress engine dependencies installed"
 fi
