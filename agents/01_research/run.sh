@@ -9,9 +9,10 @@ PROJECT_DIR="${1:?Usage: run.sh <project_dir>}"
 AGENT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# ── Source model router, Brave search, and Qwen wrapper ──────────
+# ── Source model router, Brave search, public APIs, and Qwen wrapper ──
 source "$ROOT_DIR/orchestrator/model_router.sh"
 source "$ROOT_DIR/orchestrator/brave_search.sh"
+source "$ROOT_DIR/orchestrator/public_apis.sh"
 source "$ROOT_DIR/orchestrator/qwen_call.sh"
 MODEL=$(get_model "research")
 AGENT_MD="$AGENT_DIR/AGENT.md"
@@ -123,6 +124,27 @@ fi
 if [ -n "$BRAVE_CONTEXT" ]; then
   PROMPT="${PROMPT}
 ${BRAVE_CONTEXT}"
+fi
+
+# ── Pre-fetch public APIs relevant to this idea ──────────────────
+echo "[01_research] Searching public APIs catalog..."
+PUBLIC_API_CONTEXT=""
+
+if [ -n "$IDEA_CONTEXT" ]; then
+  # Extract keywords from idea for API search
+  IDEA_KEYWORDS=$(echo "$IDEA_CONTEXT" | head -10 | tr '\n' ' ' | sed 's/[^a-zA-Z ]//g' | tr '[:upper:]' '[:lower:]')
+  API_RESULTS=$(search_public_apis "$IDEA_KEYWORDS" 8 2>/dev/null || echo "")
+  if [ -n "$API_RESULTS" ] && [ "$API_RESULTS" != '{"error":' ]; then
+    PUBLIC_API_CONTEXT="
+=== FREE PUBLIC APIs (potential data sources for this app) ===
+$API_RESULTS
+"
+  fi
+fi
+
+if [ -n "$PUBLIC_API_CONTEXT" ]; then
+  PROMPT="${PROMPT}
+${PUBLIC_API_CONTEXT}"
 fi
 
 # ── Execute agent (Qwen or Claude) ────────────────────────────────
