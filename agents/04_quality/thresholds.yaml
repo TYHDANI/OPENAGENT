@@ -1,0 +1,66 @@
+# thresholds.yaml — Quality gate configuration for OPENAGENT pipeline
+# Used by: agents/04_quality (Quality Check Agent)
+#
+# A project must achieve a weighted average score >= pass_threshold
+# across all checks. If more than max_failures checks score below
+# the pass_threshold individually, the project is rejected.
+
+# Minimum weighted average score to pass quality gate (0-10 scale)
+pass_threshold: 8
+
+# Maximum number of individual checks allowed to score below pass_threshold
+# before the entire quality gate fails regardless of average
+max_failures: 3
+
+# Check definitions with weights
+# weight: multiplier for the check's score in the weighted average
+# enabled: set to false to skip a check
+# timeout: max seconds to allow the check to run before killing it
+checks:
+  build:
+    script: checks/build_check.sh
+    weight: 1.0
+    enabled: true
+    timeout: 600
+    description: "Xcode/Swift build verification — must compile without errors"
+
+  test:
+    script: checks/test_check.sh
+    weight: 1.0
+    enabled: true
+    timeout: 900
+    description: "Unit and integration test runner — all tests must pass"
+
+  lint:
+    script: checks/lint_check.sh
+    weight: 1.0
+    enabled: true
+    timeout: 300
+    description: "SwiftLint code style and convention enforcement"
+
+  security:
+    script: checks/security_check.sh
+    weight: 1.0
+    enabled: true
+    timeout: 120
+    description: "Secret scanner and security best-practice verification"
+
+  performance:
+    script: checks/performance_check.sh
+    weight: 1.0
+    enabled: true
+    timeout: 120
+    description: "Static analysis for common performance anti-patterns"
+
+  ux_review:
+    script: checks/ux_review.sh
+    weight: 1.0
+    enabled: true
+    timeout: 120
+    description: "Accessibility and UX compliance checker"
+
+# Scoring formula:
+#   weighted_avg = sum(check_score * check_weight) / sum(check_weight)
+#   pass = weighted_avg >= pass_threshold AND failures_count <= max_failures
+#
+# A "failure" is any individual check that scores below pass_threshold.

@@ -1,0 +1,93 @@
+{
+  "identifier": "{{BUNDLE_ID}}",
+  "type": "Configuration",
+  "version": 3,
+  "subscriptionGroups": [
+    {
+      "id": "{{SUBSCRIPTION_GROUP_ID}}",
+      "localizations": [
+        {
+          "description": "Unlock all premium features",
+          "displayName": "Premium",
+          "locale": "en_US"
+        }
+      ],
+      "name": "Premium",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "4.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "{{MONTHLY_INTERNAL_ID}}",
+          "introductoryOffer": {
+            "internalID": "{{MONTHLY_INTRO_OFFER_ID}}",
+            "numberOfPeriods": 1,
+            "paymentMode": "free",
+            "subscriptionPeriod": "P1W"
+          },
+          "localizations": [
+            {
+              "description": "Full access, billed monthly",
+              "displayName": "Monthly Premium",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "{{BUNDLE_ID}}.subscription.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Monthly Premium",
+          "subscriptionGroupID": "{{SUBSCRIPTION_GROUP_ID}}",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "39.99",
+          "familyShareable": false,
+          "groupNumber": 2,
+          "internalID": "{{YEARLY_INTERNAL_ID}}",
+          "introductoryOffer": {
+            "internalID": "{{YEARLY_INTRO_OFFER_ID}}",
+            "numberOfPeriods": 1,
+            "paymentMode": "free",
+            "subscriptionPeriod": "P1W"
+          },
+          "localizations": [
+            {
+              "description": "Full access, billed yearly — save 33%",
+              "displayName": "Yearly Premium",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "{{BUNDLE_ID}}.subscription.yearly",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Yearly Premium",
+          "subscriptionGroupID": "{{SUBSCRIPTION_GROUP_ID}}",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "products": [
+    {
+      "displayPrice": "79.99",
+      "familyShareable": false,
+      "internalID": "{{LIFETIME_INTERNAL_ID}}",
+      "localizations": [
+        {
+          "description": "One-time purchase, lifetime access",
+          "displayName": "Lifetime Premium",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "{{BUNDLE_ID}}.lifetime",
+      "referenceName": "Lifetime Premium",
+      "type": "NonConsumable"
+    }
+  ],
+  "settings": {
+    "_applicationInternalID": "{{APP_INTERNAL_ID}}",
+    "_developerTeamID": "{{TEAM_ID}}"
+  }
+}

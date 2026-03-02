@@ -1,0 +1,40 @@
+# App Store Listing Template
+# All fields must be filled by the App Store Prep agent
+
+app_name: ""                    # Max 30 characters
+subtitle: ""                    # Max 30 characters
+keywords: ""                    # Max 100 characters, comma-separated
+description: |                  # Max 4000 characters
+  {{APP_DESCRIPTION}}
+
+promotional_text: ""            # Max 170 characters (can be updated without review)
+whats_new: ""                   # Release notes for updates
+
+primary_category: ""            # e.g., Productivity, Health & Fitness, Utilities
+secondary_category: ""          # Optional
+
+age_rating: "4+"                # 4+, 9+, 12+, 17+
+
+pricing:
+  model: "freemium"             # free, paid, freemium, subscription
+  price_tier: 0                 # 0 = free, 1 = $0.99, 3 = $2.99, etc.
+
+urls:
+  privacy_policy: ""            # Required
+  support: ""                   # Required
+  marketing: ""                 # Optional
+
+localization:
+  primary_language: "en-US"
+  additional_languages: []      # e.g., ["es-ES", "fr-FR", "de-DE"]
+
+# ── Self-Evaluation Checklist (agent must verify before declaring done) ──
+# - [ ] app_name is <= 30 characters and not generic
+# - [ ] subtitle is <= 30 characters and does not repeat title words
+# - [ ] keywords is <= 100 characters, no spaces after commas, no title/subtitle words repeated
+# - [ ] description is <= 4000 characters and includes subscription auto-renewal disclosure
+# - [ ] description first 3 lines contain the hook (visible before "more" tap)
+# - [ ] privacy_policy URL is provided (or placeholder flagged for manual fill)
+# - [ ] No placeholder text remains (no empty strings, no "TODO", no "{{...}}")
+# - [ ] primary_category maps to a valid Apple App Store category
+# - [ ] No trademarked or competitor names in keywords

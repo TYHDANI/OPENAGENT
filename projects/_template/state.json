@@ -1,0 +1,24 @@
+{
+  "name": "",
+  "source": "research",
+  "phase": 1,
+  "phase_name": "research",
+  "status": "template",
+  "scores": {
+    "build": 0,
+    "quality": 0
+  },
+  "quality_scores": {},
+  "quality_average": 0,
+  "quality_passed": false,
+  "monetization_integrated": false,
+  "appstore_prep_completed": false,
+  "onboarding_integrated": false,
+  "screenshots_captured": false,
+  "promo_generated": false,
+  "fail_count": 0,
+  "created_at": "",
+  "updated_at": "",
+  "cost_usd": 0.00,
+  "app_store_url": null
+}

@@ -1,0 +1,86 @@
+# OPENAGENT Global Configuration
+# Updated 2026-03-02: Optimized model routing for 75-85% cost reduction
+
+pipeline:
+  max_concurrent_projects: 5
+  cron_interval_minutes: 5
+  daily_cost_limit_usd: 50.00
+
+# Model routing — managed by orchestrator/model_router.sh
+# Tiers: haiku ($1/$5 per 1M) | sonnet ($3/$15) | opus ($15/$75)
+models:
+  # Cheap phases — Haiku handles research/validation/marketing fine
+  research: "haiku"        # Was: sonnet → saves 67%
+  validation: "haiku"      # Was: sonnet → saves 67%
+  quality: "haiku"         # Was: sonnet → saves 67%
+  appstore_prep: "haiku"   # Was: sonnet → saves 67%
+  screenshots: "haiku"     # Was: sonnet → saves 67%
+  promo: "haiku"           # Was: sonnet → saves 67%
+
+  # Code generation — Sonnet 4 is excellent for Swift/SwiftUI
+  build: "sonnet"          # Was: opus → saves 80%
+  build_review: "haiku"    # Was: sonnet → saves 67%
+  monetization: "sonnet"   # Stays: StoreKit 2 needs good model
+  onboarding: "sonnet"     # Was: opus → saves 80%
+
+  # Estimated cost per app: ~$2-5 (was $15-25)
+
+# Brave Search API for research agent
+brave_search:
+  enabled: true
+  keys:
+    - "BRAVE_API_KEY_1"   # Set in environment
+    - "BRAVE_API_KEY_2"   # Set in environment (rotation for rate limits)
+  requests_per_research_cycle: 6  # 3 searches per idea (app store, reddit, market)
+
+# Future: OpenRouter for DeepSeek/Qwen (even cheaper)
+# openrouter:
+#   enabled: false
+#   api_key: "OPENROUTER_API_KEY"
+#   models:
+#     research: "google/gemini-2.0-flash-exp:free"    # FREE
+#     validation: "google/gemini-2.0-flash-exp:free"   # FREE
+#     build: "deepseek/deepseek-chat"                  # $0.27/$1.10 per 1M
+#     quality: "deepseek/deepseek-chat"                # $0.27/$1.10 per 1M
+#     marketing: "google/gemini-2.0-flash-exp:free"    # FREE
+
+quality:
+  pass_threshold: 8       # Average score >= 8/10 to pass
+  max_failures: 3          # 3 consecutive failures = pause for manual review
+  checks:
+    - build_check
+    - test_check
+    - lint_check
+    - security_check
+    - performance_check
+    - ux_review
+
+monetization:
+  default_trial_days: 7
+  default_pricing_tier: "tier_3"  # $2.99/month
+  apple_commission_rate: 0.15     # Small Business Program
+
+paths:
+  projects_dir: "projects"
+  ideas_dir: "ideas"
+  logs_dir: "logs"
+  agents_dir: "agents"
+  derived_data: "/Volumes/T7/DerivedData"
+  build_output: "/Volumes/T7/OPENAGENT_builds"
+
+logging:
+  decisions_log: "logs/decisions.jsonl"
+  costs_log: "logs/costs.jsonl"
+  failures_log: "logs/failures.jsonl"
+
+# API keys are stored in environment variables, never in this file
+# Required env vars:
+#   ANTHROPIC_API_KEY — Claude API access
+#   BRAVE_API_KEY_1 — Brave Search API (primary)
+#   BRAVE_API_KEY_2 — Brave Search API (rotation)
+#   APPLE_DEVELOPER_TEAM_ID — Apple Developer account
+#   APP_STORE_CONNECT_KEY_ID — App Store Connect API
+#   APP_STORE_CONNECT_ISSUER_ID — App Store Connect issuer
+#   APP_STORE_CONNECT_KEY_PATH — Path to .p8 key file
+# Optional:
+#   OPENROUTER_API_KEY — For DeepSeek/Qwen/Gemini routing (future)

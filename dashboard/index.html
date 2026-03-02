@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPENAGENT Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro', system-ui, sans-serif;
+      background: #0a0a0a;
+      color: #e0e0e0;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle { color: #888; margin-bottom: 32px; font-size: 14px; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+    .stat-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    .stat-card.active .stat-value { color: #4ade80; }
+    .stat-card.shipped .stat-value { color: #60a5fa; }
+    .stat-card.paused .stat-value { color: #fbbf24; }
+    .stat-card.cost .stat-value { color: #c084fc; }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #fff;
+    }
+
+    .projects-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 32px;
+    }
+    .projects-table th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #2a2a2a;
+    }
+    .projects-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 14px;
+    }
+    .projects-table tr:hover { background: #1a1a1a; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-active { background: #064e3b; color: #4ade80; }
+    .badge-paused { background: #451a03; color: #fbbf24; }
+    .badge-shipped { background: #1e3a5f; color: #60a5fa; }
+    .badge-failed { background: #450a0a; color: #f87171; }
+
+    .phase-bar {
+      display: flex;
+      gap: 2px;
+      align-items: center;
+    }
+    .phase-dot {
+      width: 20px;
+      height: 6px;
+      border-radius: 3px;
+      background: #2a2a2a;
+    }
+    .phase-dot.complete { background: #4ade80; }
+    .phase-dot.current { background: #60a5fa; }
+
+    .logs-section {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .log-entry {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      padding: 6px 0;
+      border-bottom: 1px solid #1a1a1a;
+      color: #aaa;
+    }
+    .log-entry .timestamp { color: #666; }
+    .log-entry .project { color: #60a5fa; }
+    .log-entry .agent { color: #c084fc; }
+    .log-entry .decision { color: #4ade80; }
+    .log-entry .error { color: #f87171; }
+
+    .refresh-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .refresh-btn:hover { background: #1d4ed8; }
+  </style>
+</head>
+<body>
+  <h1>OPENAGENT</h1>
+  <p class="subtitle">Autonomous App Factory Dashboard</p>
+
+  <div class="stats-grid" id="stats">
+    <div class="stat-card active">
+      <div class="stat-value" id="active-count">-</div>
+      <div class="stat-label">Active Projects</div>
+    </div>
+    <div class="stat-card shipped">
+      <div class="stat-value" id="shipped-count">-</div>
+      <div class="stat-label">Shipped</div>
+    </div>
+    <div class="stat-card paused">
+      <div class="stat-value" id="paused-count">-</div>
+      <div class="stat-label">Paused</div>
+    </div>
+    <div class="stat-card cost">
+      <div class="stat-value" id="today-cost">$-</div>
+      <div class="stat-label">Today's Cost</div>
+    </div>
+    <div class="stat-card cost">
+      <div class="stat-value" id="total-cost">$-</div>
+      <div class="stat-label">Total Cost</div>
+    </div>
+  </div>
+
+  <h2>Projects</h2>
+  <table class="projects-table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Source</th>
+        <th>Phase</th>
+        <th>Pipeline</th>
+        <th>Status</th>
+        <th>Fails</th>
+        <th>Cost</th>
+        <th>Updated</th>
+      </tr>
+    </thead>
+    <tbody id="projects-body">
+      <tr><td colspan="8" style="text-align:center;color:#666">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Recent Decisions</h2>
+  <div class="logs-section" id="decisions-log">
+    <div class="log-entry" style="color:#666">Loading...</div>
+  </div>
+
+  <h2>Recent Failures</h2>
+  <div class="logs-section" id="failures-log">
+    <div class="log-entry" style="color:#666">Loading...</div>
+  </div>
+
+  <button class="refresh-btn" onclick="loadAll()">Refresh</button>
+
+  <script>
+    const PHASES = ['research','validation','build','quality','monetization','appstore','onboarding','screenshots','promo'];
+
+    async function fetchJSON(url) {
+      try {
+        const res = await fetch(url);
+        return await res.json();
+      } catch { return null; }
+    }
+
+    function renderPhaseBar(currentPhase) {
+      return PHASES.map((_, i) => {
+        const cls = i < currentPhase - 1 ? 'complete' : i === currentPhase - 1 ? 'current' : '';
+        return `<div class="phase-dot ${cls}" title="${PHASES[i]}"></div>`;
+      }).join('');
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return '-';
+      const diff = Date.now() - new Date(ts).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.floor(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.floor(hrs / 24)}d ago`;
+    }
+
+    async function loadSummary() {
+      const data = await fetchJSON('/api/summary');
+      if (!data) return;
+      document.getElementById('active-count').textContent = data.active;
+      document.getElementById('shipped-count').textContent = data.shipped;
+      document.getElementById('paused-count').textContent = data.paused;
+      document.getElementById('today-cost').textContent = `$${data.today_cost_usd.toFixed(2)}`;
+      document.getElementById('total-cost').textContent = `$${data.total_cost_usd.toFixed(2)}`;
+    }
+
+    async function loadProjects() {
+      const projects = await fetchJSON('/api/projects');
+      const tbody = document.getElementById('projects-body');
+      if (!projects || projects.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#666">No projects yet. Drop an idea into ideas/</td></tr>';
+        return;
+      }
+      tbody.innerHTML = projects.map(p => `
+        <tr>
+          <td><strong>${p.name || p._project_dir || '-'}</strong></td>
+          <td>${p.source || '-'}</td>
+          <td>${p.phase_name || '-'} (${p.phase || 0}/9)</td>
+          <td><div class="phase-bar">${renderPhaseBar(p.phase || 0)}</div></td>
+          <td><span class="badge badge-${p.status || 'active'}">${p.status || '-'}</span></td>
+          <td>${p.fail_count || 0}</td>
+          <td>$${(p.cost_usd || 0).toFixed(2)}</td>
+          <td>${timeAgo(p.updated_at)}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadDecisions() {
+      const entries = await fetchJSON('/api/logs/decisions?limit=20');
+      const el = document.getElementById('decisions-log');
+      if (!entries || entries.length === 0) {
+        el.innerHTML = '<div class="log-entry" style="color:#666">No decisions yet</div>';
+        return;
+      }
+      el.innerHTML = entries.reverse().map(e => `
+        <div class="log-entry">
+          <span class="timestamp">${e.timestamp || ''}</span>
+          <span class="project">[${e.project || ''}]</span>
+          <span class="agent">${e.agent || ''}</span>
+          <span class="decision">${e.decision || ''}</span>
+          — ${e.reason || ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadFailures() {
+      const entries = await fetchJSON('/api/logs/failures?limit=20');
+      const el = document.getElementById('failures-log');
+      if (!entries || entries.length === 0) {
+        el.innerHTML = '<div class="log-entry" style="color:#666">No failures (nice!)</div>';
+        return;
+      }
+      el.innerHTML = entries.reverse().map(e => `
+        <div class="log-entry">
+          <span class="timestamp">${e.timestamp || ''}</span>
+          <span class="project">[${e.project || ''}]</span>
+          <span class="agent">${e.agent || ''}</span>
+          <span class="error">${e.error || ''}</span>
+          — ${e.recovery || ''}
+        </div>
+      `).join('');
+    }
+
+    async function loadAll() {
+      await Promise.all([loadSummary(), loadProjects(), loadDecisions(), loadFailures()]);
+    }
+
+    loadAll();
+    setInterval(loadAll, 30000); // Auto-refresh every 30s
+  </script>
+</body>
+</html>

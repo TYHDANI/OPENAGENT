@@ -1,0 +1,80 @@
+# Research Sources Configuration
+# The research agent uses these to discover app opportunities
+
+sources:
+  reddit:
+    enabled: true
+    subreddits:
+      - "AppIdeas"
+      - "iOSProgramming"
+      - "SwiftUI"
+      - "SideProject"
+      - "startups"
+      - "Entrepreneur"
+      - "productivity"
+      - "getdisciplined"
+    search_terms:
+      - "I wish there was an app"
+      - "looking for an app that"
+      - "why isn't there an app"
+      - "app idea"
+      - "someone should build"
+    min_upvotes: 10
+
+  twitter_x:
+    enabled: true
+    search_terms:
+      - "need an app for"
+      - "app idea"
+      - "someone build this"
+      - "iOS app"
+    min_engagement: 5
+
+  product_hunt:
+    enabled: true
+    categories:
+      - "productivity"
+      - "health-fitness"
+      - "developer-tools"
+      - "finance"
+      - "education"
+    trending: true
+
+  app_store:
+    enabled: true
+    categories:
+      - "productivity"
+      - "health-fitness"
+      - "utilities"
+      - "finance"
+      - "education"
+      - "lifestyle"
+    check_top_charts: true
+    check_new_releases: true
+    look_for_gaps: true  # Apps with bad reviews = opportunity
+
+  hacker_news:
+    enabled: true
+    search_terms:
+      - "Show HN"
+      - "Ask HN: app"
+      - "iOS"
+    min_points: 20
+
+filters:
+  # Skip ideas that require these (too complex for autonomous builds)
+  exclude_requiring:
+    - "backend server"
+    - "real-time multiplayer"
+    - "hardware integration"
+    - "AR/VR"
+    - "machine learning model training"
+  # Prefer ideas with these characteristics
+  prefer:
+    - "offline-first"
+    - "local data"
+    - "simple UI"
+    - "utility"
+    - "SwiftUI native"
+    - "no backend needed"
+  max_complexity: "medium"  # simple, medium — skip complex
