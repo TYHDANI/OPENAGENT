@@ -39,65 +39,40 @@ COST_OPUS_IN=15.00
 COST_OPUS_OUT=75.00
 
 # ── Phase → Model Mapping ──────────────────────────────────────────
-# OPTIMIZED: Most phases downgraded from Sonnet/Opus to save ~80% costs
+# Max subscription — flat rate, no per-token cost.
+# Strategy: Opus for code gen (builds), Qwen for text analysis (free).
 #
-# Previous setup (all Anthropic, ~$15-25/app):
-#   research=sonnet, validation=sonnet, build=opus, quality=sonnet,
-#   monetization=sonnet, appstore_prep=sonnet, onboarding=opus,
-#   screenshots=sonnet, promo=sonnet
-#
-# New setup (~$2-5/app):
-#   research=haiku, validation=haiku, build=sonnet, quality=haiku,
-#   monetization=sonnet, appstore_prep=haiku, onboarding=sonnet,
-#   screenshots=haiku, promo=haiku
-#   build_review=haiku
+#   research/validation/quality/marketing = Qwen 3 4B (Ollama, FREE)
+#   build/monetization/onboarding         = Opus (best code gen)
+#   build_review                          = Qwen (text analysis)
 
 get_model() {
   local phase="${1:-}"
   local complexity="${2:-standard}"  # standard | complex
-  local project="${3:-}"            # optional project name for premium override
-
-  # Check if project is in the premium list
-  local is_premium=false
-  if [ -n "$project" ]; then
-    for p in "${PREMIUM_PROJECTS[@]}"; do
-      if [ "$p" = "$project" ]; then
-        is_premium=true
-        break
-      fi
-    done
-  fi
+  local project="${3:-}"            # optional project name
 
   case "$phase" in
-    # ── Free phases (Qwen) — research, validation, marketing ──
+    # ── Free phases (Qwen Ollama) — text analysis, no code gen ──
     research|validation|quality|appstore_prep|screenshots|promo)
       echo "$MODEL_QWEN"
       ;;
 
-    # ── Build phase — Opus for premium, Sonnet for standard ──
+    # ── Build phase — Opus for all builds (Max plan, flat rate) ──
     build)
-      if [ "$is_premium" = true ] || [ "$complexity" = "complex" ]; then
-        echo "$MODEL_OPUS"
-      else
-        echo "$MODEL_SONNET"
-      fi
+      echo "$MODEL_OPUS"
       ;;
     build_review)
       echo "$MODEL_QWEN"
       ;;
+
+    # ── Monetization — Opus (StoreKit code gen matters) ──
     monetization)
-      if [ "$is_premium" = true ]; then
-        echo "$MODEL_OPUS"
-      else
-        echo "$MODEL_SONNET"
-      fi
+      echo "$MODEL_OPUS"
       ;;
+
+    # ── Onboarding — Sonnet (good enough, saves rate limit for builds) ──
     onboarding)
-      if [ "$is_premium" = true ]; then
-        echo "$MODEL_OPUS"
-      else
-        echo "$MODEL_SONNET"
-      fi
+      echo "$MODEL_SONNET"
       ;;
 
     # ── Fallback ──
@@ -147,25 +122,24 @@ model_tier() {
   esac
 }
 
-# ── Savings Calculator ──────────────────────────────────────────────
-# Call this to see estimated savings vs old config
-print_savings_estimate() {
+# ── Model Allocation (Max Plan) ──────────────────────────────────────
+print_model_allocation() {
   cat <<'EOF'
-┌─────────────────┬─────────────┬─────────────┬──────────────┐
-│ Phase           │ Old Model   │ New Model   │ Est. Savings │
-├─────────────────┼─────────────┼─────────────┼──────────────┤
-│ Research        │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Validation      │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Build           │ Opus ($15)  │ Sonnet ($3) │ -80%         │
-│ Build Review    │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Quality         │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Monetization    │ Sonnet ($3) │ Sonnet ($3) │  0%          │
-│ App Store Prep  │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Onboarding      │ Opus ($15)  │ Sonnet ($3) │ -80%         │
-│ Screenshots     │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-│ Promo           │ Sonnet ($3) │ Haiku ($1)  │ -67%         │
-├─────────────────┼─────────────┼─────────────┼──────────────┤
-│ TOTAL per app   │ ~$15-25     │ ~$2-5       │ -75 to -85%  │
-└─────────────────┴─────────────┴─────────────┴──────────────┘
+┌─────────────────┬─────────────┬──────────────┐
+│ Phase           │ Model       │ Backend      │
+├─────────────────┼─────────────┼──────────────┤
+│ Research        │ Qwen 3 4B   │ Ollama (FREE)│
+│ Validation      │ Qwen 3 4B   │ Ollama (FREE)│
+│ Build           │ Opus 4.6    │ Claude Max   │
+│ Build Review    │ Qwen 3 4B   │ Ollama (FREE)│
+│ Quality         │ Qwen 3 4B   │ Ollama (FREE)│
+│ Monetization    │ Opus 4.6    │ Claude Max   │
+│ App Store Prep  │ Qwen 3 4B   │ Ollama (FREE)│
+│ Onboarding      │ Sonnet 4    │ Claude Max   │
+│ Screenshots     │ Qwen 3 4B   │ Ollama (FREE)│
+│ Promo           │ Qwen 3 4B   │ Ollama (FREE)│
+├─────────────────┼─────────────┼──────────────┤
+│ Cost per app    │ $0 (flat)   │ Max plan     │
+└─────────────────┴─────────────┴──────────────┘
 EOF
 }
