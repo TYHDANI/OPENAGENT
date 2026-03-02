@@ -11,6 +11,7 @@ AGENT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(cd "$(dirname "$0")/../.." && pwd)"
 
 source "$ROOT_DIR/orchestrator/model_router.sh"
+source "$ROOT_DIR/orchestrator/qwen_call.sh"
 PROJECT_NAME="$(basename "$PROJECT_DIR")"
 BUILD_MODEL=$(get_model "build" "standard" "$PROJECT_NAME")
 REVIEW_MODEL=$(get_model "build_review" "standard" "$PROJECT_NAME")
@@ -148,13 +149,23 @@ Root directory: ${ROOT_DIR}
 PROMPT_EOF
 )"
 
-echo "[03_build] Review model: $REVIEW_MODEL ($(model_tier "$REVIEW_MODEL"))"
+REVIEW_BACKEND=$(get_backend "$REVIEW_MODEL")
+echo "[03_build] Review model: $REVIEW_MODEL ($(model_tier "$REVIEW_MODEL")) | Backend: $REVIEW_BACKEND"
 
-if claude --print --dangerously-skip-permissions --model "$REVIEW_MODEL" "$REVIEW_PROMPT" < /dev/null; then
-  echo "[03_build] Build + review completed successfully."
-  exit 0
+if [ "$REVIEW_BACKEND" = "qwen" ]; then
+  if qwen_call "$REVIEW_PROMPT" "$REVIEW_MODEL" > "$PROJECT_DIR/review_notes.md" 2>/dev/null; then
+    echo "[03_build] Build + review completed successfully (Qwen)."
+    exit 0
+  else
+    echo "[03_build] WARNING: Review pass failed (Qwen), but build succeeded."
+    exit 0
+  fi
 else
-  echo "[03_build] WARNING: Review pass failed, but build succeeded."
-  # Still exit 0 since the build itself succeeded
-  exit 0
+  if claude --print --dangerously-skip-permissions --model "$REVIEW_MODEL" "$REVIEW_PROMPT" < /dev/null; then
+    echo "[03_build] Build + review completed successfully."
+    exit 0
+  else
+    echo "[03_build] WARNING: Review pass failed, but build succeeded."
+    exit 0
+  fi
 fi
