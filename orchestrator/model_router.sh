@@ -15,13 +15,12 @@ MODEL_HAIKU="claude-haiku-4-5-20251001"
 MODEL_SONNET="claude-sonnet-4-20250514"
 MODEL_OPUS="claude-opus-4-6"
 
-# Qwen (DashScope) — used via qwen_call.sh wrapper
-MODEL_QWEN_PLUS="qwen-plus"
-MODEL_QWEN_TURBO="qwen-turbo"
+# Qwen (Ollama local) — used via qwen_call.sh wrapper
+MODEL_QWEN="qwen3:4b"
 
 # ── Backend selection ─────────────────────────────────────────────
-# "claude" = claude CLI, "qwen" = DashScope API
-# Qwen handles all cheap/text phases (FREE). Claude handles code gen.
+# "claude" = claude CLI, "qwen" = Ollama local API (FREE)
+# Qwen handles all cheap/text phases. Claude handles code gen.
 BACKEND_QWEN="qwen"
 BACKEND_CLAUDE="claude"
 
@@ -72,7 +71,7 @@ get_model() {
   case "$phase" in
     # ── Free phases (Qwen) — research, validation, marketing ──
     research|validation|quality|appstore_prep|screenshots|promo)
-      echo "$MODEL_QWEN_PLUS"
+      echo "$MODEL_QWEN"
       ;;
 
     # ── Build phase — Opus for premium, Sonnet for standard ──
@@ -84,7 +83,7 @@ get_model() {
       fi
       ;;
     build_review)
-      echo "$MODEL_QWEN_PLUS"
+      echo "$MODEL_QWEN"
       ;;
     monetization)
       if [ "$is_premium" = true ]; then
@@ -114,7 +113,7 @@ get_model() {
 get_backend() {
   local model="${1:-}"
   case "$model" in
-    qwen-*) echo "$BACKEND_QWEN" ;;
+    qwen*) echo "$BACKEND_QWEN" ;;
     claude-*) echo "$BACKEND_CLAUDE" ;;
     *) echo "$BACKEND_CLAUDE" ;;  # fallback to Claude
   esac

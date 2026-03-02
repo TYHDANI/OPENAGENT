@@ -1,30 +1,25 @@
 #!/usr/bin/env bash
-# OPENAGENT — Qwen 3.5 API Wrapper (DashScope)
-# OpenAI-compatible endpoint for Alibaba Cloud Qwen models.
-# Used for cheap/free phases: research, validation, quality, marketing.
+# OPENAGENT — Qwen 3 API Wrapper (Ollama)
+# Local Ollama endpoint for Qwen models — FREE, runs on VPS.
+# Used for cheap phases: research, validation, quality, marketing.
 #
 # Usage:
 #   source "$ROOT_DIR/orchestrator/qwen_call.sh"
-#   response=$(qwen_call "Analyze this market data and write a report..." "qwen-plus")
-#   qwen_call_to_file "Write a one-pager..." "$PROJECT_DIR/one_pager.md" "qwen-plus"
+#   response=$(qwen_call "Analyze this market data..." "qwen3:4b")
+#   qwen_call_to_file "Write a report..." "$PROJECT_DIR/report.md" "qwen3:4b"
 
-DASHSCOPE_ENDPOINT="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-DASHSCOPE_API_KEY="${DASHSCOPE_API_KEY:-}"
+OLLAMA_ENDPOINT="${OLLAMA_ENDPOINT:-http://localhost:11434}"
+OLLAMA_MODEL="${OLLAMA_MODEL:-qwen3:4b}"
 
 # ── Core API Call ─────────────────────────────────────────────────
 # Returns the model's text response to stdout.
-# Args: $1=prompt, $2=model (default: qwen-plus), $3=max_tokens (default: 8192)
+# Args: $1=prompt, $2=model (default: qwen3:4b), $3=max_tokens (default: 8192)
 qwen_call() {
   local prompt="$1"
-  local model="${2:-qwen-plus}"
+  local model="${2:-$OLLAMA_MODEL}"
   local max_tokens="${3:-8192}"
 
-  if [ -z "$DASHSCOPE_API_KEY" ]; then
-    echo "[qwen_call] ERROR: DASHSCOPE_API_KEY not set" >&2
-    return 1
-  fi
-
-  # Escape the prompt for JSON (handle newlines, quotes, backslashes)
+  # Escape the prompt for JSON
   local json_prompt
   json_prompt=$(python3 -c "
 import json, sys
@@ -33,62 +28,60 @@ print(json.dumps(prompt))
 " <<< "$prompt")
 
   local response
-  response=$(curl -s --max-time 120 "$DASHSCOPE_ENDPOINT" \
-    -H "Authorization: Bearer $DASHSCOPE_API_KEY" \
+  response=$(curl -s --max-time 600 "$OLLAMA_ENDPOINT/api/chat" \
     -H "Content-Type: application/json" \
     -d "{
       \"model\": \"$model\",
       \"messages\": [{\"role\": \"user\", \"content\": $json_prompt}],
-      \"max_tokens\": $max_tokens,
-      \"temperature\": 0.7
+      \"stream\": false,
+      \"options\": {
+        \"num_predict\": $max_tokens,
+        \"temperature\": 0.7
+      }
     }" 2>/dev/null)
 
   if [ $? -ne 0 ] || [ -z "$response" ]; then
-    echo "[qwen_call] ERROR: API request failed" >&2
+    echo "[qwen_call] ERROR: Ollama request failed" >&2
     return 1
   fi
 
-  # Check for API errors
-  local error
-  error=$(echo "$response" | python3 -c "
+  # Check for errors and extract content
+  local content
+  content=$(echo "$response" | python3 -c "
 import sys, json
 try:
     data = json.load(sys.stdin)
     if 'error' in data:
-        print(data['error'].get('message', 'Unknown error'))
-    elif 'choices' not in data:
-        print('No choices in response')
-    else:
-        print('')
+        print(f'ERROR: {data[\"error\"]}', file=sys.stderr)
+        sys.exit(1)
+    msg = data.get('message', {})
+    content = msg.get('content', '')
+    if not content:
+        print('ERROR: No content in response', file=sys.stderr)
+        sys.exit(1)
+    # Strip thinking tags if present (Qwen3 uses /think)
+    import re
+    content = re.sub(r'<think>.*?</think>', '', content, flags=re.DOTALL).strip()
+    print(content)
 except Exception as e:
-    print(f'Parse error: {e}')
+    print(f'Parse error: {e}', file=sys.stderr)
+    sys.exit(1)
 " 2>/dev/null)
 
-  if [ -n "$error" ]; then
-    echo "[qwen_call] ERROR: $error" >&2
-    echo "[qwen_call] Raw response: $response" >&2
+  if [ $? -ne 0 ] || [ -z "$content" ]; then
+    echo "[qwen_call] ERROR: Failed to parse Ollama response" >&2
     return 1
   fi
 
-  # Extract text content
-  echo "$response" | python3 -c "
-import sys, json
-try:
-    data = json.load(sys.stdin)
-    content = data['choices'][0]['message']['content']
-    print(content)
-except Exception as e:
-    print(f'[qwen_call] Parse error: {e}', file=sys.stderr)
-    sys.exit(1)
-" 2>/dev/null
+  echo "$content"
 }
 
 # ── Call and write to file ────────────────────────────────────────
-# Args: $1=prompt, $2=output_file, $3=model (default: qwen-plus)
+# Args: $1=prompt, $2=output_file, $3=model (default: qwen3:4b)
 qwen_call_to_file() {
   local prompt="$1"
   local output_file="$2"
-  local model="${3:-qwen-plus}"
+  local model="${3:-$OLLAMA_MODEL}"
 
   local result
   result=$(qwen_call "$prompt" "$model")
@@ -99,7 +92,6 @@ qwen_call_to_file() {
     return 1
   fi
 
-  # Write response to file
   echo "$result" > "$output_file"
   echo "[qwen_call] Written $(wc -l < "$output_file" | tr -d ' ') lines to $output_file"
   return 0
@@ -107,8 +99,6 @@ qwen_call_to_file() {
 
 # ── Multi-file response writer ───────────────────────────────────
 # Parses ===FILE: path=== ... ===ENDFILE=== blocks from response
-# and writes each block to the corresponding file.
-# Falls back to writing entire response to $base_dir/agent_output.md if no markers found.
 qwen_write_files() {
   local response_file="$1"
   local base_dir="$2"
@@ -139,7 +129,6 @@ for filepath, content in matches:
     files_written += 1
 
 if files_written == 0:
-    # No markers — write whole response as single file
     fallback = os.path.join(base_dir, 'agent_output.md')
     with open(fallback, 'w') as f:
         f.write(response.strip() + '\n')
@@ -149,30 +138,27 @@ print(f'[qwen_write] Total files written: {files_written}')
 PYEOF
 }
 
-# ── Run agent with Qwen (full dual-path pattern) ─────────────────
+# ── Run agent with Qwen or Claude ────────────────────────────────
 # Usage: run_with_model "$PROMPT" "$MODEL" "$PROJECT_DIR" "$STATE_FILE" "phase_key" "value"
-# Handles Qwen API call + file parsing, OR Claude CLI fallback.
 run_with_model() {
   local prompt="$1"
   local model="$2"
   local project_dir="$3"
   local state_file="$4"
-  local state_key="${5:-}"    # e.g., "research_completed"
-  local state_val="${6:-true}" # value to set
+  local state_key="${5:-}"
+  local state_val="${6:-true}"
 
   local backend
   backend=$(get_backend "$model")
 
   if [ "$backend" = "qwen" ]; then
-    echo "[agent] Using Qwen: $model"
+    echo "[agent] Using Ollama Qwen: $model"
     local tmp_response
     tmp_response=$(mktemp /tmp/qwen_response.XXXXXX)
 
     if qwen_call "$prompt" "$model" > "$tmp_response" 2>/dev/null; then
-      # Parse and write files from response
       qwen_write_files "$tmp_response" "$project_dir"
 
-      # Update state.json if state_key provided
       if [ -n "$state_key" ] && [ -f "$state_file" ]; then
         python3 -c "
 import json
@@ -189,7 +175,7 @@ with open('$state_file', 'w') as f:
       rm -f "$tmp_response"
       return 0
     else
-      echo "[agent] Qwen failed. Falling back to Claude Haiku."
+      echo "[agent] Ollama Qwen failed. Falling back to Claude Haiku."
       rm -f "$tmp_response"
       model="$MODEL_HAIKU"
       backend="claude"
@@ -205,20 +191,4 @@ with open('$state_file', 'w') as f:
       return 1
     fi
   fi
-}
-
-# ── Token usage tracker ──────────────────────────────────────────
-qwen_extract_usage() {
-  local response="$1"
-  python3 -c "
-import json, sys
-try:
-    data = json.loads('''$response''')
-    usage = data.get('usage', {})
-    input_t = usage.get('prompt_tokens', 0)
-    output_t = usage.get('completion_tokens', 0)
-    print(f'{input_t}|{output_t}')
-except:
-    print('0|0')
-" 2>/dev/null
 }
