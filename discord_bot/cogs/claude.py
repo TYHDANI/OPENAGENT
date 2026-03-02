@@ -1,10 +1,11 @@
 """
 Fortress Command — Claude Cog
-Provides Claude CLI passthrough for complex instructions and log viewing.
-Works like Claude Code through Discord.
+Natural language Claude integration — chat freely like Claude Code.
+Monitors OPENAGENT pipeline and NFTS trading bots.
 """
 
 import asyncio
+import json
 import logging
 from pathlib import Path
 from datetime import datetime, timezone
@@ -14,51 +15,161 @@ from discord.ext import commands
 
 log = logging.getLogger("fortress.claude")
 
-MAX_DISCORD_MSG = 1900  # Leave room for code block markers
+MAX_DISCORD_MSG = 1900
 
 
 class ClaudeCog(commands.Cog, name="Claude"):
-    """Claude CLI passthrough — like Claude Code through Discord."""
+    """Natural language Claude — chat freely in any channel."""
 
     def __init__(self, bot):
         self.bot = bot
         self.openagent_dir = Path(bot.openagent_dir)
         self.nfts_dir = Path(bot.nfts_dir)
-        self._running_tasks = {}  # channel_id -> asyncio.Task
+        self._running_tasks = {}
 
-    @commands.command(name="ask")
-    async def ask(self, ctx, *, question: str = None):
-        """Ask Claude anything. Usage: !ask <question>"""
-        if not question:
-            await ctx.send('Usage: `!ask <your question or instruction>`\nExample: `!ask what is the current win rate across all trading bots?`')
+    def _build_system_context(self, channel_name: str) -> str:
+        """Build system context based on channel and current state."""
+
+        # Read pipeline state
+        pipeline_summary = self._get_pipeline_summary()
+        trading_summary = self._get_trading_summary()
+
+        return f"""You are the Fortress Command AI assistant in a Discord server.
+You help the user manage two systems:
+
+1. **OPENAGENT** — Autonomous iOS app factory that researches, builds, and ships apps.
+   Current pipeline status:
+{pipeline_summary}
+
+2. **Fortress Capital (NFTS)** — AI trading bot platform with multiple strategies.
+   Current trading status:
+{trading_summary}
+
+You are chatting in the #{channel_name} channel.
+
+Rules:
+- Be concise — Discord has a 2000 char limit per message.
+- Use markdown formatting (bold, code blocks, bullet points).
+- If the user asks about app progress, read the state files for real data.
+- If asked to do something (submit idea, trigger build, etc.), take action.
+- Be proactive — if you notice issues, mention them.
+- Keep a conversational tone, like texting a friend who's also a tech expert.
+- NEVER say "I can't do that" — instead explain what you CAN do.
+- Working directories: OPENAGENT={self.openagent_dir}, NFTS={self.nfts_dir}
+"""
+
+    def _get_pipeline_summary(self) -> str:
+        """Read all project states for context."""
+        try:
+            projects_dir = self.openagent_dir / "projects"
+            lines = []
+            for state_file in sorted(projects_dir.glob("*/state.json")):
+                try:
+                    state = json.loads(state_file.read_text())
+                    name = state.get("name", state_file.parent.name)
+                    if not name:
+                        continue
+                    status = state.get("status", "unknown")
+                    phase = state.get("phase", 0)
+                    phase_name = state.get("phase_name", "unknown")
+                    fails = state.get("fail_count", 0)
+                    lines.append(f"   - {name}: {status} (phase {phase}: {phase_name}, fails: {fails})")
+                except Exception:
+                    continue
+            return "\n".join(lines) if lines else "   No projects found."
+        except Exception as e:
+            return f"   Error reading pipeline: {e}"
+
+    def _get_trading_summary(self) -> str:
+        """Read trading bot status for context."""
+        try:
+            trade_log = self.nfts_dir / "packages" / "engine" / "trade_log.jsonl"
+            if not trade_log.exists():
+                return "   No trade log found. Trading engine may not be running."
+
+            lines = trade_log.read_text().strip().split("\n")
+            recent = lines[-5:] if len(lines) >= 5 else lines
+            trades = []
+            for line in recent:
+                try:
+                    t = json.loads(line)
+                    trades.append(f"   - {t.get('symbol', '?')} {t.get('side', '?')} @ {t.get('price', '?')}")
+                except Exception:
+                    continue
+            return "\n".join(trades) if trades else "   No recent trades."
+        except Exception:
+            return "   Trading data unavailable."
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        """Handle all messages as natural language — no commands needed."""
+        # Ignore bot's own messages
+        if message.author == self.bot.user:
             return
 
-        # Send thinking indicator
-        embed = discord.Embed(
-            title="\U0001f9e0 Thinking...",
-            description=f"**Q:** {question[:200]}",
-            color=0xFFAA00,
-        )
-        thinking_msg = await ctx.send(embed=embed)
+        # Ignore if message starts with ! (let command handler deal with it)
+        if message.content.startswith("!"):
+            return
 
-        # Determine working directory based on question content
+        # Ignore messages in channels we don't monitor
+        # Respond in: commands, openagent-status, nfts-trading, or DMs
+        allowed_channels = {"commands", "openagent-status", "nfts-trading"}
+        is_dm = isinstance(message.channel, discord.DMChannel)
+        is_allowed = is_dm or (hasattr(message.channel, "name") and message.channel.name in allowed_channels)
+
+        # Also respond if bot is mentioned
+        is_mentioned = self.bot.user.mentioned_in(message)
+
+        if not is_allowed and not is_mentioned:
+            return
+
+        # Don't respond to very short messages or just emojis
+        text = message.content.strip()
+        if len(text) < 3:
+            return
+
+        # Remove bot mention from text if present
+        if is_mentioned:
+            text = text.replace(f"<@{self.bot.user.id}>", "").strip()
+            text = text.replace(f"<@!{self.bot.user.id}>", "").strip()
+
+        if not text:
+            return
+
+        channel_name = "DM" if is_dm else message.channel.name
+
+        # Show typing indicator
+        async with message.channel.typing():
+            response = await self._ask_claude(text, channel_name)
+
+        # Send response
+        if len(response) <= MAX_DISCORD_MSG:
+            await message.reply(response, mention_author=False)
+        else:
+            # Split into chunks
+            chunks = self._split_response(response)
+            for i, chunk in enumerate(chunks[:5]):
+                if i == 0:
+                    await message.reply(chunk, mention_author=False)
+                else:
+                    await message.channel.send(chunk)
+                await asyncio.sleep(0.3)
+
+    async def _ask_claude(self, question: str, channel_name: str) -> str:
+        """Send question to Claude CLI and return response."""
+        system_context = self._build_system_context(channel_name)
+
+        # Determine working directory
         question_lower = question.lower()
-        if any(kw in question_lower for kw in ["trade", "trading", "bot", "strategy", "pnl", "fortress", "nfts"]):
+        if any(kw in question_lower for kw in [
+            "trade", "trading", "bot", "strategy", "pnl",
+            "fortress", "nfts", "position", "portfolio"
+        ]):
             work_dir = str(self.nfts_dir)
-            context = "NFTS/Fortress Capital trading system"
         else:
             work_dir = str(self.openagent_dir)
-            context = "OPENAGENT app factory"
 
-        # Build Claude CLI command
-        system_context = (
-            f"You are answering a question from a Discord bot user about the {context}. "
-            f"Working directory: {work_dir}. "
-            "Be concise — your response will be shown in Discord (2000 char limit per message). "
-            "Use markdown formatting."
-        )
-
-        full_prompt = f"{system_context}\n\nUser question: {question}"
+        full_prompt = f"{system_context}\n\nUser message: {question}"
 
         try:
             proc = await asyncio.create_subprocess_exec(
@@ -80,78 +191,59 @@ class ClaudeCog(commands.Cog, name="Claude"):
 
             if not response:
                 error_text = stderr.decode("utf-8", errors="replace").strip()
-                response = f"No response from Claude.\nStderr: {error_text[:500]}" if error_text else "No response from Claude."
+                if "Credit balance" in error_text:
+                    response = "Claude API needs auth refresh. The OAuth token may have expired."
+                elif error_text:
+                    response = f"Claude returned no response. Error: {error_text[:300]}"
+                else:
+                    response = "Claude returned an empty response. Try rephrasing your question."
 
         except asyncio.TimeoutError:
-            response = "Claude took too long to respond (>120s timeout)."
+            response = "Claude took too long (>120s). Try a simpler question."
         except FileNotFoundError:
-            response = (
-                "Claude CLI not found. Make sure `claude` is installed and in PATH.\n"
-                "Install: `npm install -g @anthropic-ai/claude-code`"
-            )
+            response = "Claude CLI not found on this server. Check installation."
         except Exception as e:
-            response = f"Error running Claude: {e}"
+            log.error(f"Claude error: {e}")
+            response = f"Error: {e}"
 
-        # Delete thinking message
-        try:
-            await thinking_msg.delete()
-        except discord.HTTPException:
-            pass
+        return response
 
-        # Send response (chunked if needed)
-        await self._send_chunked(ctx, question, response)
+    def _split_response(self, response: str) -> list:
+        """Split a long response into Discord-friendly chunks."""
+        chunks = []
+        while response:
+            if len(response) <= MAX_DISCORD_MSG:
+                chunks.append(response)
+                break
+            split_at = response.rfind("\n", 0, MAX_DISCORD_MSG)
+            if split_at < MAX_DISCORD_MSG // 2:
+                split_at = MAX_DISCORD_MSG
+            chunks.append(response[:split_at])
+            response = response[split_at:].lstrip("\n")
+        return chunks
 
-    async def _send_chunked(self, ctx, question: str, response: str):
-        """Send a potentially long response in chunks."""
-        # First message with question context
-        header = f"**Q:** {question[:150]}\n\n"
+    # Keep the !ask command as fallback
+    @commands.command(name="ask")
+    async def ask(self, ctx, *, question: str = None):
+        """Ask Claude anything. Usage: !ask <question>"""
+        if not question:
+            await ctx.send("Just type your question — no need for `!ask`. I respond to all messages in this channel.")
+            return
 
-        if len(header) + len(response) <= MAX_DISCORD_MSG:
-            embed = discord.Embed(
-                title="\U0001f9e0 Claude",
-                color=0x00BFFF,
-                timestamp=datetime.now(timezone.utc),
-            )
-            embed.add_field(name="Question", value=question[:250], inline=False)
+        async with ctx.typing():
+            channel_name = ctx.channel.name if hasattr(ctx.channel, "name") else "DM"
+            response = await self._ask_claude(question, channel_name)
 
-            # If response fits in embed field
-            if len(response) <= 1024:
-                embed.add_field(name="Answer", value=response, inline=False)
-                await ctx.send(embed=embed)
-            else:
-                embed.add_field(name="Answer", value="See below", inline=False)
-                await ctx.send(embed=embed)
-                await ctx.send(response[:MAX_DISCORD_MSG])
+        if len(response) <= MAX_DISCORD_MSG:
+            await ctx.reply(response, mention_author=False)
         else:
-            embed = discord.Embed(
-                title="\U0001f9e0 Claude",
-                color=0x00BFFF,
-                timestamp=datetime.now(timezone.utc),
-            )
-            embed.add_field(name="Question", value=question[:250], inline=False)
-            embed.set_footer(text=f"Response: {len(response)} chars")
-            await ctx.send(embed=embed)
-
-            # Split response into chunks
-            chunks = []
-            while response:
-                if len(response) <= MAX_DISCORD_MSG:
-                    chunks.append(response)
-                    break
-
-                # Try to split at a newline
-                split_at = response.rfind("\n", 0, MAX_DISCORD_MSG)
-                if split_at < MAX_DISCORD_MSG // 2:
-                    split_at = MAX_DISCORD_MSG
-
-                chunks.append(response[:split_at])
-                response = response[split_at:].lstrip("\n")
-
-            for i, chunk in enumerate(chunks[:10]):  # Cap at 10 messages
-                if i == 9 and len(chunks) > 10:
-                    chunk += f"\n\n*... {len(chunks) - 10} more chunks truncated*"
-                await ctx.send(chunk)
-                await asyncio.sleep(0.5)  # Rate limit
+            chunks = self._split_response(response)
+            for i, chunk in enumerate(chunks[:5]):
+                if i == 0:
+                    await ctx.reply(chunk, mention_author=False)
+                else:
+                    await ctx.send(chunk)
+                await asyncio.sleep(0.3)
 
     @commands.command(name="logs")
     async def logs(self, ctx, target: str = None, lines: int = 20):
@@ -167,31 +259,22 @@ class ClaudeCog(commands.Cog, name="Claude"):
         log_path = None
         log_desc = target
 
-        # System logs
         if target in ("system", "orchestrator", "cron"):
-            log_path = self.openagent_dir / "logs" / "orchestrator.log"
+            log_path = self.openagent_dir / "logs" / "orchestrator_run.log"
             log_desc = "Orchestrator"
         elif target == "discord":
             log_path = self.openagent_dir / "logs" / "discord_bot.log"
             log_desc = "Discord Bot"
         else:
-            # Check if it's a project
-            proj_log = self.openagent_dir / "projects" / target / "agent.log"
+            proj_log = self.openagent_dir / "logs" / f"agent_03_build_{target}.log"
             if proj_log.exists():
                 log_path = proj_log
-                log_desc = f"Project: {target}"
+                log_desc = f"Build: {target}"
             else:
-                # Check NFTS bot logs
-                nfts_log_candidates = [
-                    self.nfts_dir / "packages" / "engine" / "logs" / f"{target}.log",
-                    self.nfts_dir / "logs" / f"{target}.log",
-                    self.nfts_dir / "packages" / "engine" / "strategies" / target / "agent.log",
-                ]
-                for p in nfts_log_candidates:
-                    if p.exists():
-                        log_path = p
-                        log_desc = f"Bot: {target}"
-                        break
+                proj_dir = self.openagent_dir / "projects" / target
+                if proj_dir.exists():
+                    log_path = proj_dir / "build_log.txt"
+                    log_desc = f"Project: {target}"
 
         if not log_path or not log_path.exists():
             await ctx.send(f"No log file found for `{target}`.")
@@ -206,18 +289,16 @@ class ClaudeCog(commands.Cog, name="Claude"):
             return
 
         embed = discord.Embed(
-            title=f"\U0001f4dc Logs: {log_desc}",
+            title=f"Logs: {log_desc}",
             color=0x888888,
             timestamp=datetime.now(timezone.utc),
         )
         embed.set_footer(text=f"Last {len(tail)} lines from {log_path.name}")
         await ctx.send(embed=embed)
 
-        # Send log content in code block
         if len(content) <= MAX_DISCORD_MSG - 10:
             await ctx.send(f"```\n{content}\n```")
         else:
-            # Truncate from the beginning to fit
             truncated = content[-(MAX_DISCORD_MSG - 30):]
             await ctx.send(f"```\n...{truncated}\n```")
 
