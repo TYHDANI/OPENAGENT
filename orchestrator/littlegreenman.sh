@@ -21,9 +21,12 @@ if [ -f "$ENV_FILE" ]; then
   set +a
 fi
 
-# Fallback: try .zshrc for local Mac dev
-export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-$(grep 'ANTHROPIC_API_KEY' "$HOME/.zshrc" 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/' || echo '')}"
-export APIFY_API_KEY="${APIFY_API_KEY:-$(grep 'APIFY_API_KEY' "$HOME/.zshrc" 2>/dev/null | head -1 | sed 's/.*="\(.*\)"/\1/' || echo '')}"
+# Unset ANTHROPIC_API_KEY if empty — Claude CLI uses CLAUDE_CODE_OAUTH_TOKEN (Max plan)
+# Only keep API key if it was explicitly set with a real value
+if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+  unset ANTHROPIC_API_KEY 2>/dev/null || true
+fi
+export APIFY_API_KEY="${APIFY_API_KEY:-}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
