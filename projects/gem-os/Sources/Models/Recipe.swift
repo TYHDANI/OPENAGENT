@@ -48,11 +48,23 @@ struct Recipe: Codable, Identifiable {
         self.notes = notes
     }
 
+    /// Stable UUIDs for built-in recipes (deterministic so they can be identified)
+    private static let classicBixbiteID = UUID(uuidString: "00000000-0001-0000-0000-000000000001")!
+    private static let highYieldRedBerylID = UUID(uuidString: "00000000-0001-0000-0000-000000000002")!
+    private static let premiumAlexandriteID = UUID(uuidString: "00000000-0001-0000-0000-000000000003")!
+    private static let standardAlexandriteID = UUID(uuidString: "00000000-0001-0000-0000-000000000004")!
+
+    static let builtInRecipeIDs: Set<UUID> = [
+        classicBixbiteID, highYieldRedBerylID, premiumAlexandriteID, standardAlexandriteID
+    ]
+
+    var isBuiltIn: Bool { Self.builtInRecipeIDs.contains(id) }
+
     /// Default recipes for initial database
-    static var defaultRecipes: [Recipe] {
-        [
+    static let defaultRecipes: [Recipe] = [
             // Red Beryl recipes
             Recipe(
+                id: classicBixbiteID,
                 name: "Classic Bixbite",
                 description: "Traditional hydrothermal method for synthetic red beryl",
                 gemstoneType: .redBeryl,
@@ -69,6 +81,7 @@ struct Recipe: Codable, Identifiable {
                 notes: "Produces consistent color but smaller crystals"
             ),
             Recipe(
+                id: highYieldRedBerylID,
                 name: "High-Yield Red Beryl",
                 description: "Optimized for maximum crystal growth rate",
                 gemstoneType: .redBeryl,
@@ -87,6 +100,7 @@ struct Recipe: Codable, Identifiable {
 
             // Alexandrite recipes
             Recipe(
+                id: premiumAlexandriteID,
                 name: "Premium Alexandrite",
                 description: "High-quality synthetic alexandrite with strong color change",
                 gemstoneType: .alexandrite,
@@ -103,6 +117,7 @@ struct Recipe: Codable, Identifiable {
                 notes: "Excellent color change effect but requires precise control"
             ),
             Recipe(
+                id: standardAlexandriteID,
                 name: "Standard Alexandrite",
                 description: "Balanced approach for consistent results",
                 gemstoneType: .alexandrite,
@@ -119,7 +134,6 @@ struct Recipe: Codable, Identifiable {
                 notes: "Good balance of yield and quality"
             )
         ]
-    }
 }
 
 // Helper extension for builder pattern

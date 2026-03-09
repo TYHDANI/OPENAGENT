@@ -49,7 +49,7 @@ class TradingCog(commands.Cog, name="Trading"):
     def _find_trade_log(self) -> Path | None:
         """Locate the trade log file."""
         candidates = [
-            self.nfts_dir / "packages" / "engine" / "trade_log.jsonl",
+            self.nfts_dir / "packages" / "engine" / "data" / "trade_log.jsonl",
             self.nfts_dir / "trade_log.jsonl",
             self.nfts_dir / "logs" / "trade_log.jsonl",
             self.nfts_dir / "packages" / "engine" / "logs" / "trades.jsonl",

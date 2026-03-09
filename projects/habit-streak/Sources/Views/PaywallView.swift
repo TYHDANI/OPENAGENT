@@ -165,7 +165,10 @@ struct PaywallView: View {
                 selectedProduct = storeManager.products.first
             }
         }
-        .alert("Purchase Failed", isPresented: .constant(storeManager.errorMessage != nil)) {
+        .alert("Purchase Failed", isPresented: Binding(
+            get: { storeManager.errorMessage != nil },
+            set: { if !$0 { storeManager.errorMessage = nil } }
+        )) {
             Button("OK") {
                 storeManager.errorMessage = nil
             }

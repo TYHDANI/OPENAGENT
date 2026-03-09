@@ -1,0 +1,32 @@
+{
+  "app_name": "GEM OS",
+  "category": "productivity",
+  "seedance_prompts": {
+    "app_store_preview": {
+      "model": "Seedance 2.0",
+      "duration": "15s",
+      "aspect_ratio": "9:16 (portrait) or 16:9 (landscape)",
+      "resolution": "2K native",
+      "style": "Minimal Apple-esque, white space, gentle animations",
+      "prompt": "Style: Minimal Apple-esque, white space, gentle animations\nDuration: 15s\n\n[00-03s] HOOK: Overhead shot of messy desk / chaotic notifications.\nCamera: Slight push-in. Shallow depth of field.\nMood: Calm, organized, satisfying.\n\n[03-08s] DEMO: Hand holds iPhone showing @Image1 (main app screen).\nFinger interacts with key feature. Smooth UI animations visible on screen.\nData/content updates in real-time. Natural gesture \u2014 tap, swipe, scroll.\nCamera: Gentle tracking following the hand.\n\n[08-12s] BENEFIT: Pull back to show context.\n@Image2 displays the key result/insight.\nSatisfying visual: numbers animate, graph draws, content organizes.\nEmotional beat: relief, satisfaction, empowerment.\n\n[12-15s] CTA: App icon @Image3 centered.\n\"GEM OS\" text fades in with tagline.\nApp Store download badge appears.\nSubtle sound design \u2014 success chime.",
+      "reference_files": {
+        "@Image1": "screenshots/main_screen.png (2K+)",
+        "@Image2": "screenshots/key_feature.png (2K+)",
+        "@Image3": "app_icon_1024.png",
+        "@Video1": "(optional) reference video for camera style",
+        "@Audio1": "(optional) 15s background track"
+      },
+      "pro_tips": [
+        "Use 2K+ source images \u2014 blurry input = blurry output",
+        "Be explicit: reference @Video1 camera movement > just mentioning file",
+        "Iterate small changes, not full prompt rewrites",
+        "Specify edit vs reference clearly"
+      ]
+    },
+    "tiktok_ad": {
+      "duration": "15s",
+      "aspect_ratio": "9:16",
+      "prompt": "Style: UGC authentic, iPhone front camera feel\nDuration: 15s\n\n[00-02s] Person looks into camera. Natural lighting. Slight head tilt.\n\"Nobody tells you this about productivity...\"\n\n[02-06s] Quick cut to phone screen showing @Image1.\nFinger scrolls through features. Fast-paced, no dead space.\n\n[06-12s] Back to person. Animated, gesturing.\n\"This completely changed how I [relevant action].\"\nCut between face and phone demo. Rapid edits.\n\n[12-15s] Screen shows @Image2 (results).\nText overlay: \"Link in bio\" with pointing animation.\n"
+    }
+  }
+}

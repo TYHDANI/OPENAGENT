@@ -6,25 +6,31 @@ import Foundation
 final class PersistenceController {
     static let shared = PersistenceController()
 
+    private let inMemory: Bool
+
     // MARK: - Core Data Stack
 
     lazy var persistentContainer: NSPersistentCloudKitContainer = {
         let container = NSPersistentCloudKitContainer(name: "StreamFlow", managedObjectModel: self.model)
 
-        // Configure for CloudKit sync
-        container.persistentStoreDescriptions.forEach { storeDescription in
-            storeDescription.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-            storeDescription.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        if inMemory {
+            container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
+            // Disable CloudKit for in-memory stores (tests/previews)
+            container.persistentStoreDescriptions.first?.cloudKitContainerOptions = nil
+        } else {
+            // Configure for CloudKit sync
+            container.persistentStoreDescriptions.forEach { storeDescription in
+                storeDescription.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+                storeDescription.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
 
-            // Set CloudKit container identifier
-            storeDescription.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
-                containerIdentifier: "iCloud.com.streamflow.habits"
-            )
+                storeDescription.cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(
+                    containerIdentifier: "iCloud.com.streamflow.habits"
+                )
+            }
         }
 
         container.loadPersistentStores { _, error in
             if let error = error {
-                // In production, handle this error appropriately
                 print("Core Data failed to load: \(error.localizedDescription)")
             }
         }
@@ -158,9 +164,7 @@ final class PersistenceController {
     // MARK: - Init
 
     init(inMemory: Bool = false) {
-        if inMemory {
-            persistentContainer.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")
-        }
+        self.inMemory = inMemory
     }
 
     // MARK: - Save

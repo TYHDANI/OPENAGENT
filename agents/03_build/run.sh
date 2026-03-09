@@ -66,6 +66,21 @@ if [ -d "$PROJECT_DIR/Sources" ]; then
   SOURCE_LISTING="$(find "$PROJECT_DIR/Sources" -name '*.swift' -type f 2>/dev/null | sort)"
 fi
 
+# ── Read UI/UX references ──────────────────────────────────────
+REFERENCES_CONTEXT=""
+REF_DIR="$ROOT_DIR/references"
+for ref_source in "$REF_DIR/$PROJECT_NAME" "$REF_DIR/global"; do
+  REF_FILE="$ref_source/references.jsonl"
+  if [ -f "$REF_FILE" ]; then
+    REF_COUNT=$(wc -l < "$REF_FILE" | xargs)
+    if [ "$REF_COUNT" -gt 0 ]; then
+      REFERENCES_CONTEXT="${REFERENCES_CONTEXT}
+--- References from $(basename "$ref_source") ($REF_COUNT items) ---
+$(tail -20 "$REF_FILE")"
+    fi
+  fi
+done
+
 # ── Build the prompt ────────────────────────────────────────────
 BUILD_PROMPT="$(cat <<PROMPT_EOF
 ${AGENT_PROMPT}
@@ -75,6 +90,10 @@ ${STATE_CONTEXT:-No state.json found.}
 
 === ONE-PAGER (from validation phase) ===
 ${ONE_PAGER:-No one_pager.md found — check validation phase.}
+
+=== UI/UX REFERENCE MATERIAL ===
+${REFERENCES_CONTEXT:-No reference images or URLs submitted. Use the DesignSystem defaults.}
+Use these references as UI inspiration — match the quality, polish, and design patterns shown.
 
 === EXISTING SWIFT FILES ===
 ${SOURCE_LISTING:-No Swift source files found yet.}

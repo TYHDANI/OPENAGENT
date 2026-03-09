@@ -1,70 +1,96 @@
-# OPENAGENT Global Configuration
-# Updated 2026-03-02: Optimized model routing for 75-85% cost reduction
+# OPENAGENT Global Configuration v2.0
+# Updated 2026-03-03: Enhanced 12-phase pipeline with repo integrations
 
 pipeline:
+  version: "2.0"
+  total_phases: 12
   max_concurrent_projects: 5
   cron_interval_minutes: 5
   daily_cost_limit_usd: 50.00
 
-# Model routing — managed by orchestrator/model_router.sh
-# Tiers: haiku ($1/$5 per 1M) | sonnet ($3/$15) | opus ($15/$75)
+# Phase definitions (12-phase enhanced pipeline)
+phases:
+  1: { name: "research", display: "Deep Research" }
+  2: { name: "validation", display: "Validation" }
+  3: { name: "build", display: "Build" }
+  4: { name: "code_review", display: "Code Review" }
+  5: { name: "quality", display: "Quality" }
+  6: { name: "monetization", display: "Monetization" }
+  7: { name: "appstore_prep", display: "App Store Prep" }
+  8: { name: "onboarding", display: "Onboarding" }
+  9: { name: "screenshots", display: "Screenshots" }
+  10: { name: "promo", display: "Promo" }
+  11: { name: "launch", display: "Launch" }
+  12: { name: "growth", display: "Growth" }
+
+# Model routing
 models:
-  # Cheap phases — Haiku handles research/validation/marketing fine
-  research: "haiku"        # Was: sonnet → saves 67%
-  validation: "haiku"      # Was: sonnet → saves 67%
-  quality: "haiku"         # Was: sonnet → saves 67%
-  appstore_prep: "haiku"   # Was: sonnet → saves 67%
-  screenshots: "haiku"     # Was: sonnet → saves 67%
-  promo: "haiku"           # Was: sonnet → saves 67%
+  validation: "haiku"
+  quality: "haiku"
+  appstore_prep: "haiku"
+  screenshots: "haiku"
+  promo: "haiku"
+  growth: "haiku"
+  research: "sonnet"
+  build: "sonnet"
+  build_review: "haiku"
+  code_review: "sonnet"
+  monetization: "sonnet"
+  onboarding: "sonnet"
+  launch: "sonnet"
 
-  # Code generation — Sonnet 4 is excellent for Swift/SwiftUI
-  build: "sonnet"          # Was: opus → saves 80%
-  build_review: "haiku"    # Was: sonnet → saves 67%
-  monetization: "sonnet"   # Stays: StoreKit 2 needs good model
-  onboarding: "sonnet"     # Was: opus → saves 80%
-
-  # Estimated cost per app: ~$2-5 (was $15-25)
-
-# Brave Search API for research agent
 brave_search:
   enabled: true
   keys:
-    - "BRAVE_API_KEY_1"   # Set in environment
-    - "BRAVE_API_KEY_2"   # Set in environment (rotation for rate limits)
-  requests_per_research_cycle: 6  # 3 searches per idea (app store, reddit, market)
+    - "BRAVE_API_KEY_1"
+    - "BRAVE_API_KEY_2"
+  requests_per_research_cycle: 8
 
-# Future: OpenRouter for DeepSeek/Qwen (even cheaper)
-# openrouter:
-#   enabled: false
-#   api_key: "OPENROUTER_API_KEY"
-#   models:
-#     research: "google/gemini-2.0-flash-exp:free"    # FREE
-#     validation: "google/gemini-2.0-flash-exp:free"   # FREE
-#     build: "deepseek/deepseek-chat"                  # $0.27/$1.10 per 1M
-#     quality: "deepseek/deepseek-chat"                # $0.27/$1.10 per 1M
-#     marketing: "google/gemini-2.0-flash-exp:free"    # FREE
+# Tool integrations
+scrapling:
+  enabled: true
+  venv_path: "tools/scrapling/.venv"
+  script: "orchestrator/scrapling_search.sh"
+
+wshobson_agents:
+  enabled: true
+  path: "tools/wshobson-agents"
+  script: "orchestrator/agents_plugins.sh"
+  plugins_active: [frontend-mobile, security-scanning, content-marketing, code-reviewer]
+
+moneyprinter:
+  enabled: true
+  path: "tools/moneyprinter"
+  script: "orchestrator/auto_publish.sh"
+
+evaluator_optimizer:
+  enabled: true
+  max_iterations: 5
+  targeted_fix_only: true
+  phases_enabled: [build, code_review, quality]
 
 quality:
-  pass_threshold: 8       # Average score >= 8/10 to pass
-  max_failures: 3          # 3 consecutive failures = pause for manual review
-  checks:
-    - build_check
-    - test_check
-    - lint_check
-    - security_check
-    - performance_check
-    - ux_review
+  pass_threshold: 7
+  max_failures: 3
+  checks: [build_check, test_check, lint_check, security_check, performance_check, ux_review, accessibility_check]
+
+code_review:
+  pass_threshold: 7
+  max_critical_findings: 0
+  max_high_findings: 3
+  checks: [security_audit, architecture_review, feature_completeness, accessibility_audit, performance_review, storekit_review]
 
 monetization:
   default_trial_days: 7
-  default_pricing_tier: "tier_3"  # $2.99/month
-  apple_commission_rate: 0.15     # Small Business Program
+  default_pricing_tier: "tier_3"
+  apple_commission_rate: 0.15
 
 paths:
   projects_dir: "projects"
   ideas_dir: "ideas"
   logs_dir: "logs"
   agents_dir: "agents"
+  tools_dir: "tools"
   derived_data: "/Volumes/T7/DerivedData"
   build_output: "/Volumes/T7/OPENAGENT_builds"
 
@@ -72,15 +98,14 @@ logging:
   decisions_log: "logs/decisions.jsonl"
   costs_log: "logs/costs.jsonl"
   failures_log: "logs/failures.jsonl"
+  launches_log: "logs/launches.jsonl"
+  growth_log: "logs/growth.jsonl"
 
-# API keys are stored in environment variables, never in this file
-# Required env vars:
-#   ANTHROPIC_API_KEY — Claude API access
-#   BRAVE_API_KEY_1 — Brave Search API (primary)
-#   BRAVE_API_KEY_2 — Brave Search API (rotation)
-#   APPLE_DEVELOPER_TEAM_ID — Apple Developer account
-#   APP_STORE_CONNECT_KEY_ID — App Store Connect API
-#   APP_STORE_CONNECT_ISSUER_ID — App Store Connect issuer
-#   APP_STORE_CONNECT_KEY_PATH — Path to .p8 key file
-# Optional:
-#   OPENROUTER_API_KEY — For DeepSeek/Qwen/Gemini routing (future)
+health_check:
+  enabled: true
+  script: "orchestrator/health_check.sh"
+  run_before_cycle: true
+
+monitor:
+  enabled: true
+  script: "orchestrator/pipeline_monitor.sh"

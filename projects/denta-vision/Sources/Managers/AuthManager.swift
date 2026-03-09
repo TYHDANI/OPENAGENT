@@ -1,4 +1,5 @@
 import Foundation
+import Security
 #if canImport(UIKit)
 import UIKit
 #endif

@@ -1,4 +1,5 @@
 import Foundation
+import Security
 import CryptoKit
 
 /// Manages all data operations with HIPAA-compliant encryption and persistence

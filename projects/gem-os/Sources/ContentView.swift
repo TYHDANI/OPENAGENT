@@ -2,22 +2,24 @@ import SwiftUI
 
 struct ContentView: View {
     @Environment(StoreManager.self) private var storeManager
-    @State private var selectedTab: Tab = .simulation
+    @State private var selectedTab: Tab = .gems
     @State private var navigationPath = NavigationPath()
 
     enum Tab: String, CaseIterable {
-        case simulation = "Simulation"
+        case gems = "Gems"
+        case simulation = "Simulate"
         case reactor = "Reactor"
+        case garden = "Garden"
         case recipes = "Recipes"
-        case optimization = "Optimize"
         case settings = "Settings"
 
         var icon: String {
             switch self {
+            case .gems: return "diamond.fill"
             case .simulation: return "chart.scatter"
             case .reactor: return "waveform.badge.plus"
+            case .garden: return "leaf.fill"
             case .recipes: return "book.pages"
-            case .optimization: return "sparkles"
             case .settings: return "gearshape"
             }
         }
@@ -25,6 +27,13 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
+            // MARK: - Gem Search/Picker (NEW - Landing Page)
+            GemSearchView()
+                .tabItem {
+                    Label(Tab.gems.rawValue, systemImage: Tab.gems.icon)
+                }
+                .tag(Tab.gems)
+
             // MARK: - Simulation Tab
             SimulationView()
                 .tabItem {
@@ -39,19 +48,19 @@ struct ContentView: View {
                 }
                 .tag(Tab.reactor)
 
+            // MARK: - Garden Tab (NEW)
+            GardenView()
+                .tabItem {
+                    Label(Tab.garden.rawValue, systemImage: Tab.garden.icon)
+                }
+                .tag(Tab.garden)
+
             // MARK: - Recipes Tab
             RecipesView()
                 .tabItem {
                     Label(Tab.recipes.rawValue, systemImage: Tab.recipes.icon)
                 }
                 .tag(Tab.recipes)
-
-            // MARK: - Optimization Tab
-            OptimizationView()
-                .tabItem {
-                    Label(Tab.optimization.rawValue, systemImage: Tab.optimization.icon)
-                }
-                .tag(Tab.optimization)
 
             // MARK: - Settings Tab
             NavigationStack {

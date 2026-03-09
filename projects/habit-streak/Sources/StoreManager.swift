@@ -32,7 +32,7 @@ final class StoreManager {
     private(set) var isPurchasing: Bool = false
 
     /// User-facing error message from the last failed operation.
-    private(set) var errorMessage: String? = nil
+    var errorMessage: String? = nil
 
     // MARK: - Private
 

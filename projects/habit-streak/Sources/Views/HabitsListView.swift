@@ -131,9 +131,9 @@ struct HabitRowView: View {
                 // Icon
                 Image(systemName: habit.icon)
                     .font(.title2)
-                    .foregroundStyle(Color(habit.color))
+                    .foregroundStyle(Color.habitColor(habit.color))
                     .frame(width: 44, height: 44)
-                    .background(Color(habit.color).opacity(0.1))
+                    .background(Color.habitColor(habit.color).opacity(0.1))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
 
                 // Habit Info

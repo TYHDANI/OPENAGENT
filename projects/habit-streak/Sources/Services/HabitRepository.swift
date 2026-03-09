@@ -8,7 +8,7 @@ final class HabitRepository: ObservableObject {
     @Published var habits: [Habit] = []
     @Published var habitCompletions: [HabitCompletion] = []
 
-    private let persistenceController: PersistenceController
+    private(set) var persistenceController: PersistenceController
     private var cancellables = Set<AnyCancellable>()
 
     init(persistenceController: PersistenceController = .shared) {
@@ -98,10 +98,6 @@ final class HabitRepository: ObservableObject {
     // MARK: - Completions
 
     func toggleCompletion(for habit: Habit, on date: Date) {
-        let calendar = Calendar.current
-        let startOfDay = calendar.startOfDay(for: date)
-        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
         // Check if already completed today
         if let existingCompletion = getCompletion(for: habit, on: date) {
             // Remove completion
@@ -190,13 +186,31 @@ final class HabitRepository: ObservableObject {
         )
     }
 
+    // MARK: - Archived Habits
+
+    func fetchArchivedHabits() -> [Habit] {
+        let request = CDHabit.fetchRequest()
+        request.predicate = NSPredicate(format: "isArchived == %@", NSNumber(value: true))
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDHabit.name, ascending: true)]
+
+        do {
+            let cdHabits = try persistenceController.viewContext.fetch(request)
+            return cdHabits.map { Habit(from: $0) }
+        } catch {
+            print("Failed to fetch archived habits: \(error)")
+            return []
+        }
+    }
+
     // MARK: - Core Data Observers
 
     private func setupCoreDataObservers() {
-        // Listen for Core Data changes
         NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                self?.fetchHabits()
+                Task { @MainActor in
+                    self?.fetchHabits()
+                }
             }
             .store(in: &cancellables)
     }

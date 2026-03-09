@@ -1,75 +1,93 @@
-# GEM OS Build Review Notes
+# GEM OS — Build Review Notes
 
-## Review Date: 2026-03-01
-## Reviewer: Build Agent (self-review)
+**Reviewer**: Build agent (code review pass)
+**Date**: 2026-03-02
+**Build environment**: Linux VPS (no Swift toolchain — build verification requires Mac with Xcode)
 
-## Build Status: SUCCESS
-- Build target: Mac Catalyst (iOS SDK not available on build machine; code targets iOS 17+)
-- Zero errors, zero warnings
-- Test target compiles successfully
+## Feature Completeness (vs One-Pager MVP Scope)
 
-## MVP Feature Checklist
-
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Monte Carlo simulation engine | Implemented | MonteCarloEngine.swift - 10K-100K iterations, progress reporting |
-| Digital twin reactor modeling | Implemented | ReactorView.swift - Live visualization, real-time metrics, parameter trends |
-| Recipe database (Red Beryl + Alexandrite) | Implemented | 4 default recipes, CRUD operations, search/filter |
-| Parameter optimization recommendations | Implemented | 4 optimization goals with specific recommendations |
-| Export simulation results (PDF/CSV) | Implemented | Full PDF report generation and CSV export via share sheet |
-| StoreKit 2 monetization | Implemented | Basic ($99/mo) and Professional ($299/mo) subscription tiers |
+| Must-Have Feature | Status | Implementation |
+|---|---|---|
+| Monte Carlo simulation engine | IMPLEMENTED | `MonteCarloEngine.swift` — configurable iterations (1K-100K), statistical analysis, progress reporting |
+| Digital twin reactor modeling | IMPLEMENTED | `ReactorView.swift` — animated reactor visualization, real-time monitoring, parameter trends |
+| Recipe database (Red Beryl + Alexandrite) | IMPLEMENTED | `Recipe.swift` — 4 built-in recipes (2 Red Beryl, 2 Alexandrite), CRUD management |
+| Parameter optimization recommendations | IMPLEMENTED | `OptimizationService.swift` — 4 optimization goals, impact-rated recommendations |
+| Export simulation results (PDF/CSV) | IMPLEMENTED | `ExportService.swift` — PDF via UIGraphicsPDFRenderer, CSV text export |
+| StoreKit 2 monetization | IMPLEMENTED | `StoreManager.swift`, `PaywallView.swift` ($99/mo basic, $299/mo pro) |
 
 ## Architecture Review
 
-- **Pattern**: MVVM with @Observable (iOS 17+)
+- **Pattern**: MVVM with `@Observable` (iOS 17+) — correct and modern
+- **Concurrency**: Proper use of `async/await`, `@MainActor` isolation on ViewModels
 - **Navigation**: TabView with 5 tabs (Simulation, Reactor, Recipes, Optimization, Settings)
-- **State management**: @Observable ViewModels, @Environment for StoreManager
-- **No third-party dependencies**: Only Apple frameworks (SwiftUI, StoreKit, Charts, UIKit for PDF)
+- **StoreKit**: StoreKit 2 with subscription management, transaction listening, restore purchases
+- **Cross-platform**: `#if canImport(UIKit)` guards for iOS-specific code, macOS color fallbacks
+- **No third-party dependencies**: All Apple frameworks only (SwiftUI, StoreKit, Charts, UIKit for PDF)
 
-## Code Quality Assessment
+## Files (21 Swift files)
 
-### Strengths
-- Clean MVVM separation across all features
-- Proper use of @Observable and @MainActor for thread safety
-- Complete StoreKit 2 integration with transaction listener, restore purchases
-- Builder pattern for SynthesisParameters
-- Comprehensive recipe model with Codable support
-- Professional PDF export with proper formatting
-- Charts integration for data visualization
-- Real-time reactor monitoring simulation
+| Category | Count | Files |
+|---|---|---|
+| App entry | 2 | App.swift, ContentView.swift |
+| Models | 3 | GemstoneType, SynthesisParameters, Recipe |
+| ViewModels | 3 | SimulationVM, RecipesVM, OptimizationVM |
+| Views | 7 | Simulation, Reactor, Recipes, Optimization, Export, Paywall, Settings (in ContentView) |
+| Services | 3 | MonteCarloEngine, OptimizationService, ExportService |
+| Utilities | 1 | CrossPlatformColors |
+| StoreKit | 1 | StoreManager |
+| Tests | 1 | AppTests (12 test cases) |
 
-### Issues Found (Non-Critical)
-1. **Fixed**: `var csvContent` in ExportService.exportToCSV should be `let` (was a warning, fixed)
-2. **Minor**: Recipe default data uses `UUID()` which generates different IDs each launch - default recipe deletion check `Recipe.defaultRecipes.contains(where: { $0.id == recipe.id })` won't work across launches since IDs regenerate. This is acceptable for MVP since recipes are in-memory only.
-3. **Minor**: ReactorView uses `Timer.scheduledTimer` (RunLoop-based) instead of Swift Concurrency `Task.sleep`. Functional but not modern Swift concurrency style. Acceptable for MVP.
-4. **Minor**: `GoalOption` uses emoji strings for descriptions. Works but may render differently across locales.
-5. **Environment**: iOS Simulator runtime mismatch (SDK 26.2 vs runtime 26.1) prevented direct iOS simulator builds. Build verified via Mac Catalyst instead.
+## Issues Found & Fixed
 
-### Security Review
+### This review pass
+1. **Unused state variable** (`showingRecipeDetail` in RecipesView) — removed to eliminate compiler warning. Replaced with `selectedRecipe = nil` in delete handler for proper sheet dismissal.
+2. **Unformatted double interpolation** in ReactorStatsGrid — switched to `String(format:)` for consistent display.
+
+### Previous review pass (already fixed)
+3. **Recipe UUID instability** — `Recipe.defaultRecipes` used deterministic UUIDs and `isBuiltIn` property.
+4. **Missing `Hashable` conformance** — `OptimizationGoal` conforms to `Hashable`.
+
+## Non-Critical Observations (not fixed — not blocking)
+
+1. **Timer pattern in ReactorView/RealTimeMetrics**: Uses `Timer.scheduledTimer` which works but a `.task`-based approach with `AsyncTimerSequence` would be more idiomatic SwiftUI. Functional as-is.
+2. **Monte Carlo engine runs synchronously within async context**: The simulation loop is CPU-bound. For 100K iterations, performance is acceptable on modern devices. Could be parallelized with `TaskGroup` for future optimization.
+3. **No persistent storage**: All data is in-memory only. Recipes reset on relaunch. Acceptable for MVP.
+4. **Emoji in GoalOption.goalIcon()**: Renders fine on iOS, may affect accessibility.
+5. **Placeholder URLs**: `gemos.app/terms`, `example.com/terms` — expected for MVP, needs updating before App Store submission.
+
+## Security Review
+
 - No hardcoded API keys or secrets
-- No insecure data storage
-- StoreKit verification uses proper VerificationResult checking
-- URLs are properly handled (no injection vectors)
+- No network calls requiring authentication
+- StoreKit uses Apple's built-in `VerificationResult` checking
+- Export writes to temporary directory only
+- No SQL injection vectors (no database queries)
+- No user input injection risks
 
-### Accessibility
-- All navigation uses standard SwiftUI patterns (TabView, NavigationStack)
-- Labels with system images provide VoiceOver support
-- Standard controls (Slider, Picker, Button) have inherent accessibility
+## Build Verification Status
 
-## Recommendations for Quality Phase
-1. Add persistent storage for recipes (Core Data or JSON file)
-2. Consider adding accessibility labels for custom visualizations (ReactorVisualization, QualityChart)
-3. Add more comprehensive error states and empty states
-4. Performance test Monte Carlo engine with 100K iterations on older devices
+- **Swift toolchain**: NOT AVAILABLE on Linux VPS
+- **Code review**: PASS — no compilation errors identified in manual review
+- **Requires**: macOS with Xcode 15+ and Swift 5.9+ for actual build verification
+- **Expected result**: Clean build with zero errors on macOS 14+ / iOS 17+ target
 
 ## Test Coverage
-- 13 unit tests covering:
-  - StoreManager initial state
-  - Product identifier uniqueness
-  - SynthesisParameters defaults (Red Beryl, Alexandrite)
-  - GemstoneType validation (ranges, formulas)
-  - Recipe defaults, yield ranges, Codable conformance
-  - SimulationResult quality calculation
-  - MonteCarloEngine output validation
-  - OptimizationService recommendations
-  - SynthesisParameters builder pattern
+
+12 test cases covering:
+- StoreManager initial state and product identifiers
+- SynthesisParameters defaults (Red Beryl, Alexandrite)
+- GemstoneType range validation and chemical formulas
+- Recipe existence, yield range validation, and Codable round-trip
+- SimulationResult quality calculation
+- MonteCarloEngine output verification (async)
+- OptimizationService recommendations (async)
+- Builder pattern functionality
+
+## Recommendations for Quality Phase
+
+1. Verify `swift build` on macOS — the build agent VPS lacks Swift toolchain
+2. Add persistent storage for recipes (Core Data or JSON file)
+3. Add accessibility labels for custom visualizations (reactor vessel)
+4. Performance test Monte Carlo engine with 100K iterations on older devices
+5. Add UI tests for tab navigation and paywall flow
+6. Update placeholder URLs before App Store submission

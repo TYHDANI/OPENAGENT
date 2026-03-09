@@ -36,17 +36,20 @@ AGENTS_DIR="$ROOT_DIR/agents"
 LOGS_DIR="$ROOT_DIR/logs"
 LOCKFILE="$ROOT_DIR/.littlegreenman.lock"
 
-# Phase directories in pipeline order
+# Phase directories in pipeline order (12-phase v2 pipeline)
 PHASES=(
   "01_research"
   "02_validation"
   "03_build"
-  "04_quality"
-  "05_monetization"
-  "06_appstore_prep"
-  "07_onboarding"
-  "08_screenshots"
-  "09_promo"
+  "04_code_review"
+  "05_quality"
+  "06_monetization"
+  "07_appstore_prep"
+  "08_onboarding"
+  "09_screenshots"
+  "10_promo"
+  "11_launch"
+  "12_growth"
 )
 
 # ── Logging helpers ──────────────────────────────────────────────
@@ -211,9 +214,9 @@ with open('$project_dir/state.json', 'r') as f:
     state = json.load(f)
 # Only advance if the agent hasn't already advanced past us
 if state.get('phase', 0) <= next_phase:
-    state['phase'] = min(next_phase, 10)
-    phases = ['research','validation','build','quality','monetization','appstore_prep','onboarding','screenshots','promo']
-    if state['phase'] <= 9:
+    state['phase'] = min(next_phase, 13)
+    phases = ['research','validation','build','code_review','quality','monetization','appstore_prep','onboarding','screenshots','promo','launch','growth']
+    if state['phase'] <= 12:
         state['phase_name'] = phases[state['phase'] - 1]
     else:
         state['phase_name'] = 'shipped'
@@ -224,6 +227,13 @@ with open('$project_dir/state.json', 'w') as f:
     json.dump(state, f, indent=2)
 "
     log_decision "$project_name" "$phase_dir" "phase_complete" "Advanced to phase $((phase_num + 1))"
+    # Notify Discord with rich embed
+    if [ -f "$SCRIPT_DIR/discord_notify.sh" ]; then
+      bash "$SCRIPT_DIR/discord_notify.sh" \
+        "**$project_name** completed **$phase_dir** → advancing to phase $((phase_num + 1))" \
+        "green" \
+        "✅ Phase Complete" 2>/dev/null || true
+    fi
   else
     # Handle failure
     python3 -c "
@@ -242,6 +252,13 @@ with open('$project_dir/state.json', 'w') as f:
     fail_count=$(python3 -c "import json; print(json.load(open('$project_dir/state.json')).get('fail_count', 0))" 2>/dev/null)
     if [ "$fail_count" -ge 3 ]; then
       log_failure "$project_name" "$phase_dir" "3 consecutive failures" "paused for manual review"
+      # Alert Discord about pause
+      if [ -f "$SCRIPT_DIR/discord_notify.sh" ]; then
+        bash "$SCRIPT_DIR/discord_notify.sh" \
+          "**$project_name** paused after 3 failures in **$phase_dir** — needs manual review" \
+          "red" \
+          "⚠️ Project Paused" 2>/dev/null || true
+      fi
     else
       log_failure "$project_name" "$phase_dir" "phase failed" "will retry next cycle (fail $fail_count/3)"
     fi
@@ -265,6 +282,11 @@ main() {
   # Process any new user ideas
   process_ideas
 
+  # Count active projects first
+  local total_active
+  total_active=$(count_active)
+  echo "[littlegreenman] Active projects: $total_active"
+
   # Get scheduler priority queue
   local queue
   queue=$(python3 "$SCRIPT_DIR/scheduler.py" "$PROJECTS_DIR" 2>/dev/null || echo "")
@@ -274,9 +296,18 @@ main() {
     exit 0
   fi
 
-  local total_active
-  total_active=$(count_active)
-  echo "[littlegreenman] Active projects: $total_active"
+  # Send cycle summary to Discord
+  if [ -f "$SCRIPT_DIR/discord_notify.sh" ]; then
+    local summary
+    summary=$(echo "$queue" | while IFS='|' read -r pname pnum; do
+      [ -z "$pname" ] && continue
+      echo "• **$pname** → phase $pnum"
+    done)
+    bash "$SCRIPT_DIR/discord_notify.sh" \
+      "Processing $total_active active projects this cycle:\n$summary" \
+      "blue" \
+      "🔄 Pipeline Cycle" 2>/dev/null || true
+  fi
 
   # Track agents spawned this cycle (max 5 concurrent agents per cycle)
   local spawned=0

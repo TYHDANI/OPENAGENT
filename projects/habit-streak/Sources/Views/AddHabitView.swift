@@ -34,7 +34,7 @@ struct AddHabitView: View {
                     HStack(spacing: 12) {
                         ForEach(colors, id: \.self) { color in
                             Circle()
-                                .fill(Color(color))
+                                .fill(Color.habitColor(color))
                                 .frame(width: 40, height: 40)
                                 .overlay(
                                     Circle()
@@ -53,11 +53,11 @@ struct AddHabitView: View {
                     ForEach(icons, id: \.self) { icon in
                         Image(systemName: icon)
                             .font(.title2)
-                            .foregroundStyle(selectedIcon == icon ? .white : Color(selectedColor))
+                            .foregroundStyle(selectedIcon == icon ? .white : Color.habitColor(selectedColor))
                             .frame(width: 44, height: 44)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(selectedIcon == icon ? Color(selectedColor) : Color(selectedColor).opacity(0.1))
+                                    .fill(selectedIcon == icon ? Color.habitColor(selectedColor) : Color.habitColor(selectedColor).opacity(0.1))
                             )
                             .onTapGesture {
                                 selectedIcon = icon

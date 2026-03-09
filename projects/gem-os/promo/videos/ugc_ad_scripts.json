@@ -1,0 +1,80 @@
+{
+  "ugc_scripts": [
+    {
+      "id": "nobody_tells_you",
+      "hook_type": "curiosity",
+      "duration": 15,
+      "aspect_ratio": "9:16",
+      "script": {
+        "hook_0_2s": "Nobody tells you this about people...",
+        "credibility_2_4s": "I've been dealing with this for years and finally found something.",
+        "insight_4_8s": "[Non-obvious fact about the domain]. Most people waste time/money because they don't know this.",
+        "bridge_8_10s": "That's exactly why GEM OS exists.",
+        "demo_10_13s": "[Screen recording: open app -> key feature -> result in 3 taps]",
+        "cta_13_15s": "Link in bio. Free to try. Seriously."
+      },
+      "notes": "Trim ALL dead space between lines. Maximum pace. Close/open loops constantly.",
+      "filming_tips": "iPhone front camera, natural daylight, slightly off-center framing"
+    },
+    {
+      "id": "spending_too_much",
+      "hook_type": "problem_aware",
+      "duration": 15,
+      "aspect_ratio": "9:16",
+      "script": {
+        "hook_0_2s": "I was wasting so much time on [pain point]...",
+        "pivot_2_5s": "Until I realized saves time and money.",
+        "solution_5_9s": "GEM OS does this automatically. Watch.",
+        "proof_9_13s": "[Show results \u2014 savings, time saved, improvement metric]",
+        "cta_13_15s": "Download free. Changed everything for me."
+      },
+      "notes": "Personal, vulnerable opening. Show real transformation.",
+      "filming_tips": "Start frustrated/overwhelmed, end relieved/happy"
+    },
+    {
+      "id": "as_a_professional",
+      "hook_type": "authority",
+      "duration": 15,
+      "aspect_ratio": "9:16",
+      "script": {
+        "hook_0_2s": "As someone who works with people every day...",
+        "insight_2_5s": "[Specific data point about the problem]. Most people have no idea.",
+        "reveal_5_9s": "GEM OS fixes this. [Key differentiator explained simply].",
+        "demo_9_13s": "[Quick walkthrough of 2-3 features, rapid cuts]",
+        "cta_13_15s": "Try GEM OS free. Your future self will thank you."
+      },
+      "notes": "Authority builds trust fast. Data point must be surprising/non-obvious.",
+      "filming_tips": "Professional but approachable. Office or relevant environment."
+    },
+    {
+      "id": "before_after",
+      "hook_type": "transformation",
+      "duration": 15,
+      "aspect_ratio": "9:16",
+      "script": {
+        "hook_0_3s": "POV: Before vs After [domain]",
+        "before_3_7s": "[Show the messy/stressful/expensive before state]",
+        "transition_7_8s": "[Satisfying transition \u2014 swipe, snap, morph]",
+        "after_8_13s": "[Show clean/organized/profitable state with GEM OS]",
+        "cta_13_15s": "GEM OS. Free download. Link in bio."
+      },
+      "notes": "Visual contrast is everything. Make the before genuinely bad.",
+      "filming_tips": "Split screen or sharp cut transition. High contrast."
+    },
+    {
+      "id": "social_proof",
+      "hook_type": "social_proof",
+      "duration": 15,
+      "aspect_ratio": "9:16",
+      "script": {
+        "hook_0_2s": "This app has been blowing up and I finally tried it...",
+        "context_2_5s": "Everyone's been talking about GEM OS so I downloaded it.",
+        "demo_5_11s": "[First-time user experience. Genuine reactions. Quick feature tour]",
+        "verdict_11_13s": "Okay yeah I get the hype now. This is actually insane.",
+        "cta_13_15s": "Go download it. Trust me."
+      },
+      "notes": "Authentic first-impression feel. Genuine surprise reactions.",
+      "filming_tips": "Casual, unscripted feel. Real-time discovery vibe."
+    }
+  ]
+}

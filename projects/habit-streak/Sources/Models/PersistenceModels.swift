@@ -14,7 +14,11 @@ public class CDHabit: NSManagedObject {
     @NSManaged public var color: String
     @NSManaged public var icon: String
     @NSManaged public var isArchived: Bool
-    @NSManaged public var completions: Set<CDHabitCompletion>
+    @NSManaged public var completions: NSSet?
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDHabit> {
+        return NSFetchRequest<CDHabit>(entityName: "CDHabit")
+    }
 }
 
 // MARK: - HabitCompletion Entity
@@ -26,6 +30,10 @@ public class CDHabitCompletion: NSManagedObject {
     @NSManaged public var completedAt: Date
     @NSManaged public var note: String?
     @NSManaged public var habit: CDHabit
+
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDHabitCompletion> {
+        return NSFetchRequest<CDHabitCompletion>(entityName: "CDHabitCompletion")
+    }
 }
 
 // MARK: - Swift Models

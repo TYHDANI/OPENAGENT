@@ -20,7 +20,7 @@ struct HabitDetailView: View {
                 VStack(spacing: 16) {
                     Image(systemName: habit.icon)
                         .font(.system(size: 60))
-                        .foregroundStyle(Color(habit.color))
+                        .foregroundStyle(Color.habitColor(habit.color))
 
                     Text(habit.name)
                         .font(.largeTitle)
@@ -39,7 +39,7 @@ struct HabitDetailView: View {
                         title: "Total Completions",
                         value: "\(progress.totalCompletions)",
                         subtitle: "Every completion counts!",
-                        color: Color(habit.color),
+                        color: Color.habitColor(habit.color),
                         isPrimary: true
                     )
 

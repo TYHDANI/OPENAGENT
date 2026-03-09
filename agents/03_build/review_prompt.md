@@ -26,12 +26,28 @@ You are a senior iOS engineer performing a thorough code review of a SwiftUI app
 - No retain cycles in closures or Task captures (use `[weak self]` where needed).
 
 ### 4. SwiftUI Best Practices
-- Views are small and composable (no single view exceeding ~80 lines).
+- Views are small and composable (no single view exceeding ~120 lines).
 - Preview providers are included for all views.
 - Navigation uses `NavigationStack` (not deprecated `NavigationView`).
 - Environment and state management follows iOS 17+ `@Observable` patterns.
 - Modifiers are applied in correct order (e.g., `.padding()` before `.background()`).
 - Accessibility labels are set on interactive elements and images.
+
+### 7. Design System Compliance
+- **All colors use `AppColors.*`** — no hardcoded `Color.blue`, `Color.red`, `.white`, `.black`.
+- **All fonts use `AppTypography.*`** — no hardcoded `.system(size:)` font calls.
+- **All spacing uses `AppSpacing.*`** — no hardcoded `.padding(20)` or `.spacing(16)`.
+- **All corner radii use `AppRadius.*`** — no hardcoded `.cornerRadius(12)`.
+- **Buttons use `PremiumButton`** with built-in haptic feedback.
+- **Loading states use `ShimmerView`** — no bare `ProgressView` spinners.
+- **Empty states use `AppEmptyStateView`** with SF Symbol, title, subtitle, and CTA.
+- **Cards use `PremiumCard`** — no plain `RoundedRectangle` containers.
+- **User feedback uses `ToastView`** / `.toast()` modifier — no raw `Alert` for transient feedback.
+- **Haptic feedback present** on all interactive state changes via `.sensoryFeedback()` or `AppHaptics`.
+- **Animations use `AppAnimation.*`** presets — no bare `.easeInOut` or `.linear`.
+- **`.refreshable {}`** present on data-driven list/scroll views.
+- **`.contentTransition(.numericText())`** on changing numeric values.
+- **SF Symbol effects**: `.symbolEffect(.bounce)` or `.contentTransition(.symbolEffect(.replace))` used appropriately.
 
 ### 5. StoreKit Integration
 - Uses StoreKit 2 (not legacy StoreKit 1 APIs).
@@ -74,3 +90,20 @@ Produce a report in this structure:
 ```
 
 If all checks pass, state "PASS — no issues found" and list files reviewed. If any critical issue is found, the review is a FAIL and the build agent must address the issues before proceeding to the next pipeline step.
+
+## Build Error Resolution
+
+When the review identifies issues that may cause build failures, follow the build error resolver pattern (`build_error_resolver.md`):
+
+1. **Minimal diffs only** — fix the specific issue, don't refactor surrounding code
+2. **One error at a time** — address the most fundamental error first (cascading errors resolve themselves)
+3. **Stop if fix introduces new errors** — revert and try a different approach
+4. **Verify after each fix** — run `xcodebuild` to confirm the fix works
+
+## Swift Rules Cross-Reference
+
+When reviewing, validate against the Swift rules in `rules/`:
+- `rules/swift-coding-style.md` — naming, formatting, file organization
+- `rules/swift-patterns.md` — MVVM, SwiftData, navigation patterns
+- `rules/swift-security.md` — secrets, network security, privacy
+- `rules/swift-testing.md` — test coverage and quality

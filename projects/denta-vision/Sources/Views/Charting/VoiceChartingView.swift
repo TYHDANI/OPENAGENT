@@ -297,10 +297,12 @@ struct VoiceChartingView: View {
         dentalChart.notes = chartNotes
 
         do {
-            if dentalChart.id == dentalChart.id {
-                try dataManager.createDentalChart(dentalChart)
-            } else {
+            // Check if this chart already exists in the data store
+            let existingCharts = dataManager.getDentalCharts(for: dentalChart.patientId)
+            if existingCharts.contains(where: { $0.id == dentalChart.id }) {
                 try dataManager.updateDentalChart(dentalChart)
+            } else {
+                try dataManager.createDentalChart(dentalChart)
             }
             dismiss()
         } catch {

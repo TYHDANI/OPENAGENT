@@ -35,3 +35,4 @@ ideas/*.processed
 # IDE
 .vscode/
 .idea/
+tools/scrapling

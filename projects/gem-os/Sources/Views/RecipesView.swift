@@ -4,7 +4,6 @@ struct RecipesView: View {
     @State private var viewModel = RecipesViewModel()
     @State private var showingAddRecipe = false
     @State private var selectedRecipe: Recipe?
-    @State private var showingRecipeDetail = false
     @Environment(StoreManager.self) private var storeManager
 
     var body: some View {
@@ -56,7 +55,7 @@ struct RecipesView: View {
                     },
                     onDelete: {
                         viewModel.deleteRecipe(recipe)
-                        showingRecipeDetail = false
+                        selectedRecipe = nil
                     },
                     onDuplicate: {
                         viewModel.duplicateRecipe(recipe)
@@ -374,7 +373,7 @@ struct RecipeDetailView: View {
                                     .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(.borderedProminent)
-                            .disabled(Recipe.defaultRecipes.contains(where: { $0.id == recipe.id }))
+                            .disabled(recipe.isBuiltIn)
                         }
                     }
                 }

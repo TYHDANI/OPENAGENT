@@ -97,11 +97,36 @@ Additionally:
    - Create ViewModels as `@Observable` classes (iOS 17+) or `ObservableObject` classes (iOS 16 support)
    - Keep ViewModels testable: inject dependencies, avoid direct SwiftUI imports in VMs where possible
 
-6. **Write the UI layer**:
-   - Build views in `Views/`, one file per screen
+6. **Write the UI layer (PREMIUM QUALITY REQUIRED)**:
+   - Build views in `Views/`, one file per screen (max 120 lines per view)
    - Use SwiftUI best practices: small composable views, `@State` for local state, `@Environment` for shared state
    - Implement navigation: `NavigationStack` for iOS 16+
-   - Apply sensible defaults for colors, spacing, and typography (the design polish comes in later phases)
+   - **MUST use the DesignSystem** — the template includes `Sources/DesignSystem/` with tokens and components:
+     - `AppColors` for ALL colors (never use `Color.blue`, `Color.red`, `.white`, `.black` directly)
+     - `AppTypography` for ALL fonts (never use `.system(size:)` directly)
+     - `AppSpacing` for ALL padding/spacing (never use hardcoded numbers like `.padding(20)`)
+     - `AppRadius` for ALL corner radii
+     - `AppShadow` for card/container shadows
+     - `AppAnimation` for ALL animations (springBounce, springSnappy, easeSmooth)
+     - `AppHaptics` for haptic feedback on all interactive elements
+   - **MUST use the component library** from `Sources/DesignSystem/Components/`:
+     - `PremiumCard` for all card containers (not plain `RoundedRectangle`)
+     - `PremiumButton` for all buttons (has built-in haptics, loading state)
+     - `ShimmerView` for all loading states (never use bare `ProgressView`)
+     - `ToastView` / `.toast()` modifier for user feedback (success, error, info)
+     - `AppEmptyStateView` for all empty states (with SF Symbol animation + CTA)
+     - `SectionHeader` for all section titles
+     - `AppSearchBar` for search functionality
+     - `BadgeView` for status tags and labels
+   - **MUST add polish**:
+     - `.sensoryFeedback()` or `AppHaptics` on all interactive state changes
+     - `.contentTransition(.numericText())` on any numeric values that change
+     - `.symbolEffect(.bounce)` or `.contentTransition(.symbolEffect(.replace))` on SF Symbols
+     - `.thinMaterial` or `.ultraThinMaterial` on overlays and floating elements
+     - `.refreshable {}` on all data-driven screens
+     - Staggered list animations using `.transition()` and `.animation()` with delay
+     - Every view under 120 lines — extract subviews aggressively
+     - `.accessibilityLabel` on ALL interactive elements and images
 
 7. **Implement monetization**:
    - StoreKit 2 integration in `Services/StoreKitService.swift`
@@ -205,6 +230,46 @@ The Build agent exits successfully when **all** of the following are true:
 - **Error handling**: Use Swift's `Result` type or `async throws` -- never force-unwrap optionals in production code
 - **Concurrency**: Use Swift Concurrency (`async/await`, `@MainActor`) -- no legacy GCD unless interfacing with older APIs
 - **No third-party dependencies**: Use only Apple frameworks. This ensures App Store review goes smoothly and avoids supply chain risks.
+
+### Swift Rules (Load On-Demand)
+
+The `rules/` directory contains detailed coding standards. Load the relevant rule file ONLY when working on that area:
+
+| Rule File | When to Load |
+|-----------|-------------|
+| `rules/swift-coding-style.md` | Writing any Swift code (naming, formatting, file organization) |
+| `rules/swift-patterns.md` | Implementing MVVM, SwiftData, StoreKit, or navigation patterns |
+| `rules/swift-security.md` | Handling credentials, network calls, user data, or privacy manifests |
+| `rules/swift-testing.md` | Writing unit tests |
+
+### SwiftUI Patterns Skill
+
+Load `skills/swiftui-patterns.md` when implementing UI-heavy features. Contains:
+- Premium view templates with DesignSystem integration
+- Loading states (ShimmerView), empty states (AppEmptyStateView)
+- Card patterns (PremiumCard), list row patterns
+- Interactive feedback (haptics + animation)
+- Accessibility checklist
+
+### Build Error Resolver
+
+When `xcodebuild` fails, follow the resolution process in `build_error_resolver.md`:
+1. Parse errors from build output
+2. Identify root cause (often cascading from one error)
+3. Apply minimal fix — don't refactor surrounding code
+4. Rebuild and verify error count decreased
+5. Max 5 attempts before marking as failure
+
+### Verification Loop
+
+After implementation, run the verification loop defined in `skills/verification-loop.md`:
+1. Compile check (zero errors)
+2. Test check (tests pass)
+3. Static analysis (no force unwraps, no secrets)
+4. DesignSystem compliance (no raw colors/fonts/spacing)
+5. Feature completeness (all one-pager must-haves implemented)
+
+Loop until all checks pass or max retries reached.
 
 ## What This Agent Does NOT Do
 

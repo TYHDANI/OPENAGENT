@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct ProgressView: View {
+struct ProgressDashboardView: View {
     @ObservedObject var habitRepository: HabitRepository
     @Environment(StoreManager.self) private var storeManager
     @State private var selectedTimeframe: Timeframe = .week
@@ -186,7 +186,7 @@ struct StatCard: View {
 struct HabitProgressRow: View {
     let habit: Habit
     let progress: HabitProgress
-    let timeframe: ProgressView.Timeframe
+    let timeframe: ProgressDashboardView.Timeframe
 
     private var completionCount: Int {
         switch timeframe {
@@ -221,7 +221,7 @@ struct HabitProgressRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: habit.icon)
-                    .foregroundStyle(Color(habit.color))
+                    .foregroundStyle(Color.habitColor(habit.color))
 
                 Text(habit.name)
                     .font(.body)
@@ -231,7 +231,7 @@ struct HabitProgressRow: View {
 
                 Text("\(completionCount)")
                     .font(.headline)
-                    .foregroundStyle(Color(habit.color))
+                    .foregroundStyle(Color.habitColor(habit.color))
             }
 
             // Progress Bar
@@ -242,7 +242,7 @@ struct HabitProgressRow: View {
                         .frame(height: 8)
 
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(habit.color))
+                        .fill(Color.habitColor(habit.color))
                         .frame(width: geometry.size.width * progressPercentage, height: 8)
                         .animation(.spring(response: 0.5, dampingFraction: 0.8), value: progressPercentage)
                 }
@@ -288,7 +288,7 @@ struct EmptyProgressView: View {
 
 #Preview {
     NavigationStack {
-        ProgressView(habitRepository: HabitRepository(persistenceController: .preview))
+        ProgressDashboardView(habitRepository: HabitRepository(persistenceController: .preview))
             .environment(StoreManager())
     }
 }

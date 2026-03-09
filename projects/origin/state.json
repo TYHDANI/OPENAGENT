@@ -1,0 +1,92 @@
+{
+  "name": "Origin",
+  "source": "user_idea",
+  "phase": 4,
+  "phase_name": "code_review",
+  "status": "active",
+  "build_result": null,
+  "recommendation": "BUILD \u2014 Proceed with egg donation MVP. $40B+ fertility market with 9-10% CAGR, validated by Cofertility's $16M Series A. No existing platform combines AI matching + legal automation + escrow + clinic integration. Launch egg donation only in CA/NY/TX, defer surrogacy to Phase 2. Requires ethics board and reproductive law counsel before build phase.",
+  "validation_scores": {
+    "feasibility": 8,
+    "market_fit": 9,
+    "monetization": 8
+  },
+  "scores": {
+    "research": 9,
+    "validation": 0,
+    "build": 8.5,
+    "quality": 0,
+    "monetization": 0,
+    "appstore_prep": 0,
+    "onboarding": 0,
+    "screenshots": 0,
+    "promo": 0
+  },
+  "quality_average": 0,
+  "quality_passed": false,
+  "quality_status": null,
+  "monetization_integrated": false,
+  "appstore_prep_completed": false,
+  "fail_count": 1,
+  "created_at": "2026-03-03T19:00:00Z",
+  "updated_at": "2026-03-09T07:30:10.769531+00:00",
+  "cost_usd": 0.0,
+  "app_store_url": null,
+  "notes": "Build complete: 33 Swift files, Mac Catalyst BUILD SUCCEEDED. Fertility matching platform with 7 models, 6 services, 2 view models, 11 views, 5 design system files.",
+  "research_findings": {
+    "market_size": {
+      "global_fertility_2025": "$39.88B",
+      "global_fertility_2034": "$87.05B",
+      "fertility_cagr": "9.06-10.28%",
+      "global_egg_donation_2025": "$3.4B",
+      "us_donor_egg_ivf_2024": "$398.5M",
+      "us_donor_egg_ivf_2030": "$520.5M",
+      "surrogacy_market_2024": "$4.99-16.12B",
+      "femtech_vc_2024": "$2.6B (+55% YoY)"
+    },
+    "competitors_analyzed": 15,
+    "top_competitor": "Cofertility ($16M Series A, 225+ clinic partners, egg-sharing model)",
+    "competitive_gap": "No platform combines AI matching + legal automation + escrow + clinic integration in one product",
+    "revenue_projections": {
+      "conservative_y1": "$240K",
+      "moderate_y1": "$600K",
+      "aggressive_y1": "$1.2M",
+      "conservative_y5": "$12M",
+      "aggressive_y5": "$80M"
+    },
+    "per_journey_revenue": "$3,000-$8,000",
+    "ltv_cac_ratio": "3-8x",
+    "gross_margin": "70-85%",
+    "regulatory_complexity": "HIGH \u2014 50 states + international; egg donation lowest complexity; surrogacy highest",
+    "hipaa_status": "Reproductive Health Rule vacated June 2025; standard HIPAA applies; Origin likely Business Associate if clinic-integrated",
+    "surrogacy_friendly_states": [
+      "CA",
+      "CT",
+      "DE",
+      "DC",
+      "ME",
+      "NV",
+      "NH",
+      "OR",
+      "RI",
+      "WA",
+      "MI (new 2025)"
+    ],
+    "technical_feasibility": "HIGH \u2014 all critical APIs validated (Stripe Connect, Stripe Identity, Checkr, DocuSign, FHIR); 14-week MVP estimate",
+    "mvp_scope": "Egg donation matching, 3 US states (CA/NY/TX), AI scoring, escrow, legal templates, messaging, clinic locator",
+    "key_risks": [
+      "Regulatory fragmentation across 50 states",
+      "Trust barrier for new platform in life-defining decisions",
+      "Ethical exploitation concerns require proactive ethics board",
+      "Long sales cycles (3-18 month fertility journeys)",
+      "HIPAA/privacy breach liability"
+    ],
+    "key_opportunities": [
+      "80-90% cheaper than traditional agencies ($3K-8K vs $20K-40K)",
+      "Expanding surrogacy legalization (Michigan 2025)",
+      "Insurance mandates increasing IVF coverage",
+      "FemTech VC funding accelerating",
+      "Network effects create defensible moat"
+    ]
+  }
+}

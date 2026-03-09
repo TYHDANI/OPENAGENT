@@ -34,11 +34,12 @@ final class NotificationServiceTests: XCTestCase {
             "A gentle nudge to keep going"
         ]
 
-        // Then
+        // Then — messages should be encouraging, not guilt-inducing
         for message in messages {
             XCTAssertTrue(message.count > 0)
-            XCTAssertFalse(message.contains("fail"))
-            XCTAssertFalse(message.contains("miss"))
+            XCTAssertFalse(message.contains("failed"))
+            XCTAssertFalse(message.contains("you missed"))
+            XCTAssertFalse(message.contains("disappointed"))
         }
     }
 

@@ -31,7 +31,7 @@ struct ContentView: View {
 
             // MARK: - Progress Tab
             NavigationStack {
-                ProgressView(habitRepository: habitRepository)
+                ProgressDashboardView(habitRepository: habitRepository)
             }
             .tabItem {
                 Label("Progress", systemImage: "chart.line.uptrend.xyaxis")
@@ -55,7 +55,7 @@ struct ContentView: View {
             }
         }
         .task {
-            await NotificationService.shared.setupNotificationCategories()
+            NotificationService.shared.setupNotificationCategories()
         }
     }
 }

@@ -55,6 +55,9 @@ Rules:
 - Be proactive — if you notice issues, mention them.
 - Keep a conversational tone, like texting a friend who's also a tech expert.
 - NEVER say "I can't do that" — instead explain what you CAN do.
+- Handle ALL types of questions — simple or complex, technical or casual.
+- For in-depth questions, give thorough answers. Don't tell the user to simplify their question.
+- You can discuss strategy, architecture, debugging, business planning, or anything else.
 - Working directories: OPENAGENT={self.openagent_dir}, NFTS={self.nfts_dir}
 """
 
@@ -137,10 +140,13 @@ Rules:
             return
 
         channel_name = "DM" if is_dm else message.channel.name
+        log.info(f"Message from {message.author} in #{channel_name}: {text[:80]}...")
 
         # Show typing indicator
         async with message.channel.typing():
             response = await self._ask_claude(text, channel_name)
+
+        log.info(f"Claude response ({len(response)} chars) for {message.author}")
 
         # Send response
         if len(response) <= MAX_DISCORD_MSG:
@@ -157,6 +163,8 @@ Rules:
 
     async def _ask_claude(self, question: str, channel_name: str) -> str:
         """Send question to Claude CLI and return response."""
+        import time as _time
+        t0 = _time.time()
         system_context = self._build_system_context(channel_name)
 
         # Determine working directory
@@ -169,22 +177,42 @@ Rules:
         else:
             work_dir = str(self.openagent_dir)
 
+        # Validate working directory exists — fall back to home if not
+        if not Path(work_dir).is_dir():
+            log.warning(f"Work dir {work_dir} does not exist, falling back to OPENAGENT dir")
+            work_dir = str(self.openagent_dir)
+        if not Path(work_dir).is_dir():
+            work_dir = str(Path.home())
+
         full_prompt = f"{system_context}\n\nUser message: {question}"
 
         try:
+            # Load env vars for Claude auth
+            import os as _os
+            env = {**_os.environ}
+            env_file = Path.home() / ".env.openagent"
+            if env_file.exists():
+                for line in env_file.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        env[k.strip()] = v.strip()
+
             proc = await asyncio.create_subprocess_exec(
-                "claude",
+                "/usr/bin/claude",
                 "--print",
                 "--dangerously-skip-permissions",
                 "--model", "sonnet",
                 "-p", full_prompt,
+                stdin=asyncio.subprocess.DEVNULL,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=work_dir,
+                env=env,
             )
 
             stdout, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=120
+                proc.communicate(), timeout=300
             )
 
             response = stdout.decode("utf-8", errors="replace").strip()
@@ -199,13 +227,18 @@ Rules:
                     response = "Claude returned an empty response. Try rephrasing your question."
 
         except asyncio.TimeoutError:
-            response = "Claude took too long (>120s). Try a simpler question."
-        except FileNotFoundError:
-            response = "Claude CLI not found on this server. Check installation."
+            elapsed = _time.time() - t0
+            log.error(f"Claude timeout after {elapsed:.0f}s")
+            response = "Claude took too long (>5 min). The question may be too complex for a single query — try breaking it into parts."
+        except FileNotFoundError as e:
+            log.error(f"FileNotFoundError: {e}")
+            response = f"Claude CLI error: {e}. Check that /usr/bin/claude exists."
         except Exception as e:
             log.error(f"Claude error: {e}")
             response = f"Error: {e}"
 
+        elapsed = _time.time() - t0
+        log.info(f"Claude call completed in {elapsed:.1f}s ({len(response)} chars)")
         return response
 
     def _split_response(self, response: str) -> list:

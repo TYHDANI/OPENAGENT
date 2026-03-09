@@ -41,7 +41,7 @@ struct AddEditPatientView: View {
             Section("Contact Information") {
                 TextField("Email", text: $email)
                     .keyboardType(.emailAddress)
-                    .autocapitalization(.none)
+                    .textInputAutocapitalization(.never)
 
                 TextField("Phone", text: $phone)
                     .keyboardType(.phonePad)
@@ -52,7 +52,7 @@ struct AddEditPatientView: View {
                 TextField("Street", text: $street)
                 TextField("City", text: $city)
                 TextField("State", text: $state)
-                    .autocapitalization(.allCharacters)
+                    .textInputAutocapitalization(.characters)
                 TextField("ZIP Code", text: $zipCode)
                     .keyboardType(.numberPad)
             }

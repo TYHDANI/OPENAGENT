@@ -71,16 +71,9 @@ final class StoreManagerTests: XCTestCase {
         XCTAssertNil(sut.activeSubscription)
     }
 
-    func testPurchase_WhileAlreadyPurchasing_ShouldHandleGracefully() async {
-        // Given
-        sut.isPurchasing = true
-
-        // When
-        // In production, this would be prevented by UI
-        // Test verifies the flag prevents issues
-
+    func testPurchase_InitialState_ShouldNotBePurchasing() {
         // Then
-        XCTAssertTrue(sut.isPurchasing)
+        XCTAssertFalse(sut.isPurchasing)
     }
 
     func testRestorePurchases_ShouldUpdateSubscriptionStatus() async {

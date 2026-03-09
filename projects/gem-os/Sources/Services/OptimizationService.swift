@@ -6,7 +6,7 @@ final class OptimizationService {
 
     private init() {}
 
-    enum OptimizationGoal {
+    enum OptimizationGoal: Hashable {
         case maximizeYield
         case maximizeQuality
         case minimizeTime

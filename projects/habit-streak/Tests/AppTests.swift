@@ -1,5 +1,5 @@
 import XCTest
-@testable import {{APP_NAME}}
+@testable import StreamFlow
 
 final class AppTests: XCTestCase {
 

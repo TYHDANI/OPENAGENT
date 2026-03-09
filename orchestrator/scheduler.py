@@ -67,8 +67,8 @@ def filter_actionable(states: list[dict]) -> list[dict]:
         if status != "active":
             continue
 
-        # Skip completed projects
-        if phase > 9:
+        # Skip completed projects (12-phase pipeline)
+        if phase > 12:
             continue
 
         actionable.append(state)

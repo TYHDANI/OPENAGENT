@@ -1,0 +1,33 @@
+{
+  "name": "TerraSurvive",
+  "source": "user_idea",
+  "phase": 5,
+  "phase_name": "quality",
+  "status": "active",
+  "recommendation": "conditional_go",
+  "scores": {
+    "research": 9.5,
+    "validation": 8.0,
+    "build": 8.5,
+    "code_review": 0,
+    "quality": 0,
+    "monetization": 0,
+    "appstore_prep": 0,
+    "onboarding": 0,
+    "screenshots": 0,
+    "promo": 0,
+    "launch": 0,
+    "growth": 0
+  },
+  "validation_scores": {
+    "feasibility": 7,
+    "market_fit": 9,
+    "monetization": 8
+  },
+  "fail_count": 0,
+  "created_at": "2026-03-02T18:30:00Z",
+  "updated_at": "2026-03-09T07:14:40.629809+00:00",
+  "cost_usd": 0.0,
+  "app_store_url": null,
+  "notes": "BUILD COMPLETE. 38 Swift files, 5-tab layout (Map, Guides, Species, SOS, Settings). All MVP features implemented: MapKit with region annotations and water sources, survival guide library with 15+ techniques across 6 categories, species database with 18 species across 3 regions, SOS beacon with SwiftData persistence, emergency contacts for 6 countries, 3-tier paywall (monthly/yearly/lifetime), 4-screen onboarding, offline region downloads. Architecture: @Observable services with bundled static data, SwiftData for bookmarks and SOS logs, DesignSystem used throughout. No third-party dependencies. Build requires iOS simulator SDK: swift build -Xswiftc -sdk -Xswiftc $(xcrun --sdk iphonesimulator --show-sdk-path) -Xswiftc -target -Xswiftc arm64-apple-ios17.0-simulator"
+}

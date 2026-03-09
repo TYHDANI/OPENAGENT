@@ -508,8 +508,8 @@ struct ReactorStatsGrid: View {
                     StatItem(title: "Temperature Range", value: "25-900°C")
                 }
                 GridRow {
-                    StatItem(title: "Seed Crystal", value: "\(parameters.seedCrystalSize) mm")
-                    StatItem(title: "Solution", value: "\(parameters.nutrientConcentration) mol/L")
+                    StatItem(title: "Seed Crystal", value: String(format: "%.1f mm", parameters.seedCrystalSize))
+                    StatItem(title: "Solution", value: String(format: "%.2f mol/L", parameters.nutrientConcentration))
                 }
             }
         }
