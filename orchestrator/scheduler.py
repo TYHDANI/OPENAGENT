@@ -91,8 +91,8 @@ def main():
     actionable = filter_actionable(states)
     sorted_projects = priority_sort(actionable)
 
-    # Output priority queue (max 5)
-    for state in sorted_projects[:5]:
+    # Output priority queue (all active — no cap, parallel processing)
+    for state in sorted_projects:
         project_name = state.get("_dir", state.get("name", "unknown"))
         phase = state.get("phase", 1)
         print(f"{project_name}|{phase}")

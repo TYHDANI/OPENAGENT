@@ -4,8 +4,8 @@
 pipeline:
   version: "2.0"
   total_phases: 12
-  max_concurrent_projects: 5
-  cron_interval_minutes: 5
+  max_concurrent_projects: 20
+  cron_interval_minutes: 2
   daily_cost_limit_usd: 50.00
 
 # Phase definitions (12-phase enhanced pipeline)

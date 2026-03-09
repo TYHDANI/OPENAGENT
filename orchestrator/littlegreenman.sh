@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # OPENAGENT Orchestrator — LITTLEGREENMAN
-# Cron entry: */5 * * * * cd /Users/beachbar/OPENAGENT && ./orchestrator/littlegreenman.sh
+# Cron entry: */2 * * * * cd /Users/beachbar/OPENAGENT && ./orchestrator/littlegreenman.sh
 #
 # Scans projects for active state, determines next pipeline step,
 # spawns Claude Code CLI sessions per agent.
@@ -309,16 +309,17 @@ main() {
       "🔄 Pipeline Cycle" 2>/dev/null || true
   fi
 
-  # Track agents spawned this cycle (max 5 concurrent agents per cycle)
+  # Track agents spawned this cycle (parallel — all apps at once)
   local spawned=0
+  local max_concurrent="${OPENAGENT_MAX_CONCURRENT:-20}"
 
   # Process each project from the priority queue
   while IFS='|' read -r project_name phase_num; do
     [ -z "$project_name" ] && continue
 
-    # Limit concurrent agent spawns per cycle
-    if [ "$spawned" -ge 5 ]; then
-      echo "[littlegreenman] Max concurrent agents reached (5). Deferring $project_name."
+    # Safety valve: cap at max_concurrent to prevent resource exhaustion
+    if [ "$spawned" -ge "$max_concurrent" ]; then
+      echo "[littlegreenman] Max concurrent agents reached ($max_concurrent). Deferring $project_name."
       log_decision "$project_name" "orchestrator" "deferred" "Max concurrent agents per cycle reached"
       continue
     fi
