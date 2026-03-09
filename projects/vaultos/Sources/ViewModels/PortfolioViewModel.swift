@@ -23,8 +23,8 @@ final class PortfolioViewModel {
         var map: [String: (qty: Double, val: Double)] = [:]
         for acct in filteredAccounts {
             for h in acct.holdings {
-                let existing = map[h.asset, default: (0, 0)]
-                map[h.asset] = (existing.qty + h.quantity, existing.val + h.totalValue)
+                let existing = map[h.symbol, default: (0, 0)]
+                map[h.symbol] = (existing.qty + h.quantity, existing.val + h.usdValue)
             }
         }
         return map.map { (asset: $0.key, quantity: $0.value.qty, value: $0.value.val) }

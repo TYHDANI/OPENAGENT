@@ -26,9 +26,11 @@ struct AlertsTab: View {
                 }
             }
             .navigationTitle("Alerts")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .automatic) {
                     Button {
                         // Refresh
                         Task { await data.startAllFeeds() }

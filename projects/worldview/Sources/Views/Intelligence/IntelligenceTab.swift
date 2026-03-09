@@ -39,7 +39,9 @@ struct IntelligenceTab: View {
                 }
             }
             .navigationTitle("Intelligence")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
 }

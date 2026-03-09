@@ -53,7 +53,7 @@ struct PortfolioView: View {
                                 Image(systemName: "building.columns")
                                     .foregroundStyle(AppColors.accent)
                                 VStack(alignment: .leading) {
-                                    Text(account.accountLabel).font(.subheadline.bold())
+                                    Text(account.accountName).font(.subheadline.bold())
                                     Text(account.custodian.rawValue).font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()

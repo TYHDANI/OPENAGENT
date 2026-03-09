@@ -120,7 +120,9 @@ struct SettingsTab: View {
                 .scrollContentBackground(.hidden)
             }
             .navigationTitle("Settings")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
     }
 }

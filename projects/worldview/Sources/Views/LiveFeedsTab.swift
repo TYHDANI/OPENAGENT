@@ -80,7 +80,9 @@ struct LiveFeedsTab: View {
                 }
             }
             .navigationTitle("Live Feeds")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .sheet(isPresented: $showPlayer) {
                 if let stream = selectedStream {
                     LivePlayerView(channel: selectedChannel, streamURL: stream.url)
@@ -245,7 +247,7 @@ struct LivePlayerView: View {
                 .padding()
             }
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .automatic) {
                     Button("Done") { dismiss() }
                         .foregroundStyle(NETheme.accent)
                 }

@@ -99,7 +99,9 @@ struct OnboardingView: View {
                 }
                 .tag(4)
             }
+            #if os(iOS)
             .tabViewStyle(.page(indexDisplayMode: .always))
+            #endif
         }
         .interactiveDismissDisabled()
     }

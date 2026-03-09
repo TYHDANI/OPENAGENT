@@ -89,7 +89,9 @@ struct SearchView: View {
                 }
             }
             .navigationTitle("Search")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
         }
         .onChange(of: searchText) { _, newValue in
             guard newValue.count >= 2 else { results = []; return }

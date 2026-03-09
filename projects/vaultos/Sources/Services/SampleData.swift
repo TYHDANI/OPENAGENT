@@ -8,19 +8,19 @@ enum SampleData {
     ]
 
     static let accounts: [CustodialAccount] = [
-        CustodialAccount(entityID: entities[0].id, custodian: .coinbase, accountLabel: "Main Coinbase",
+        CustodialAccount(entityID: entities[0].id, custodian: .coinbase, accountName: "Main Coinbase",
                          holdings: [
-                            Holding(asset: "BTC", quantity: 1.5, currentPrice: 67000),
-                            Holding(asset: "ETH", quantity: 12.0, currentPrice: 3400)
+                            Holding(symbol: "BTC", quantity: 1.5, usdValue: 100500),
+                            Holding(symbol: "ETH", quantity: 12.0, usdValue: 40800)
                          ]),
-        CustodialAccount(entityID: entities[0].id, custodian: .kraken, accountLabel: "Kraken Trading",
+        CustodialAccount(entityID: entities[0].id, custodian: .kraken, accountName: "Kraken Trading",
                          holdings: [
-                            Holding(asset: "SOL", quantity: 200, currentPrice: 145),
-                            Holding(asset: "ETH", quantity: 5.0, currentPrice: 3400)
+                            Holding(symbol: "SOL", quantity: 200, usdValue: 29000),
+                            Holding(symbol: "ETH", quantity: 5.0, usdValue: 17000)
                          ]),
-        CustodialAccount(entityID: entities[1].id, custodian: .iTrustCapital, accountLabel: "Trust IRA",
+        CustodialAccount(entityID: entities[1].id, custodian: .iTrustCapital, accountName: "Trust IRA",
                          holdings: [
-                            Holding(asset: "BTC", quantity: 3.0, currentPrice: 67000)
+                            Holding(symbol: "BTC", quantity: 3.0, usdValue: 201000)
                          ])
     ]
 

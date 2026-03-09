@@ -56,9 +56,11 @@ struct SmartMoneyTab: View {
                 }
             }
             .navigationTitle("Smart Money")
+            #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
+            #endif
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .automatic) {
                     Button {
                         Task { await data.refreshCapitalFlows() }
                     } label: {
