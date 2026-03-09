@@ -146,7 +146,7 @@ with open('$STATE_FILE', 'w') as f:
     exit 1
   fi
 else
-  if claude --print --dangerously-skip-permissions --model "$MODEL" "$LAUNCH_PROMPT" < /dev/null; then
+  if echo "$LAUNCH_PROMPT" | claude --print --dangerously-skip-permissions --model "$MODEL" 2>/dev/null; then
     echo "[11_launch] Launch plan generated. Ready for growth."
     exit 0
   else

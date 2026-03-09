@@ -108,7 +108,7 @@ PROMPT_EOF
 echo "[07_onboarding] Starting onboarding agent for: $(basename "$PROJECT_DIR")"
 echo "[07_onboarding] Model: $MODEL ($(model_tier "$MODEL"))"
 
-if claude --print --dangerously-skip-permissions --model "$MODEL" "$PROMPT" < /dev/null; then
+if echo "$PROMPT" | claude --print --dangerously-skip-permissions --model "$MODEL" 2>/dev/null; then
   echo "[07_onboarding] Onboarding phase completed successfully."
   exit 0
 else

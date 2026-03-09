@@ -133,7 +133,7 @@ with open('$STATE_FILE', 'w') as f:
     exit 1
   fi
 else
-  if claude --print --dangerously-skip-permissions --model "$MODEL" "$GROWTH_PROMPT" < /dev/null; then
+  if echo "$GROWTH_PROMPT" | claude --print --dangerously-skip-permissions --model "$MODEL" 2>/dev/null; then
     echo "[12_growth] Growth plan generated. App shipped."
     exit 0
   else

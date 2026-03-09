@@ -103,7 +103,7 @@ PROMPT_EOF
 echo "[05_monetization] Starting monetization agent for: $(basename "$PROJECT_DIR")"
 echo "[05_monetization] Model: $MODEL ($(model_tier "$MODEL"))"
 
-if claude --print --dangerously-skip-permissions --model "$MODEL" "$PROMPT" < /dev/null; then
+if echo "$PROMPT" | claude --print --dangerously-skip-permissions --model "$MODEL" 2>/dev/null; then
   echo "[05_monetization] Monetization phase completed successfully."
   exit 0
 else

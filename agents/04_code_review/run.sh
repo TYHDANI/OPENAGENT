@@ -186,7 +186,7 @@ with open('$STATE_FILE', 'w') as f:
     exit 1
   fi
 else
-  if claude --print --dangerously-skip-permissions --model "$MODEL" "$REVIEW_PROMPT" < /dev/null; then
+  if echo "$REVIEW_PROMPT" | claude --print --dangerously-skip-permissions --model "$MODEL" 2>/dev/null; then
     # Check if review passed
     REVIEW_PASSED=$(python3 -c "
 import json

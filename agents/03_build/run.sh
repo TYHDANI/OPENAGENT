@@ -119,7 +119,7 @@ PROMPT_EOF
 echo "[03_build] Starting build agent for: $(basename "$PROJECT_DIR")"
 echo "[03_build] Build model: $BUILD_MODEL ($(model_tier "$BUILD_MODEL"))"
 
-if ! claude --print --dangerously-skip-permissions --model "$BUILD_MODEL" "$BUILD_PROMPT" < /dev/null; then
+if ! echo "$BUILD_PROMPT" | claude --print --dangerously-skip-permissions --model "$BUILD_MODEL" 2>/dev/null; then
   echo "[03_build] ERROR: Build agent failed."
   exit 1
 fi
@@ -180,7 +180,7 @@ if [ "$REVIEW_BACKEND" = "qwen" ]; then
     exit 0
   fi
 else
-  if claude --print --dangerously-skip-permissions --model "$REVIEW_MODEL" "$REVIEW_PROMPT" < /dev/null; then
+  if echo "$REVIEW_PROMPT" | claude --print --dangerously-skip-permissions --model "$REVIEW_MODEL" 2>/dev/null; then
     echo "[03_build] Build + review completed successfully."
     exit 0
   else
