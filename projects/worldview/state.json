@@ -3,7 +3,7 @@
   "source": "user_idea",
   "phase": 4,
   "phase_name": "code_review",
-  "status": "paused",
+  "status": "active",
   "recommendation": "go",
   "scores": {
     "research": 9.5,
@@ -24,7 +24,7 @@
     "market_fit": 9,
     "monetization": 9
   },
-  "fail_count": 3,
+  "fail_count": 0,
   "created_at": "2026-03-03T05:00:00Z",
   "updated_at": "2026-03-09T07:45:09.693173+00:00",
   "cost_usd": 0.0,

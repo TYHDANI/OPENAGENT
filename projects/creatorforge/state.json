@@ -3,7 +3,7 @@
   "source": "user_idea",
   "phase": 1,
   "phase_name": "research",
-  "status": "paused",
+  "status": "active",
   "scores": {
     "build": 0,
     "quality": 0
@@ -16,7 +16,7 @@
   "onboarding_integrated": false,
   "screenshots_captured": false,
   "promo_generated": false,
-  "fail_count": 3,
+  "fail_count": 0,
   "created_at": "2026-03-04T20:00:00Z",
   "updated_at": "2026-03-09T07:25:14.885186+00:00",
   "cost_usd": 0.0,
