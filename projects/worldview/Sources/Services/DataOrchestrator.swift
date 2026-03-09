@@ -20,6 +20,13 @@ final class DataOrchestrator {
     var alerts: [BreakingAlert] = []
     var worldBrief: WorldBrief?
 
+    // RF Sensing stores (RuView integration)
+    var sensorNodes: [WiFiSensorNode] = []
+    var presenceDetections: [PresenceDetection] = []
+    var wifiVitalSigns: [WiFiVitalSigns] = []
+    var disasterSurvivors: [DisasterSurvivor] = []
+    var rfInterferenceZones: [RFInterferenceZone] = []
+
     // Capital Flow stores
     var houseTrades: [CongressTrade] = []
     var senateTrades: [CongressTrade] = []
@@ -40,6 +47,7 @@ final class DataOrchestrator {
     let radarService = RadarService()
     let maxarService = MaxarService()
     let capitalFlowService = CapitalFlowService()
+    let rfSensingService = RFSensingService()
 
     // State
     var isLoading = false
@@ -66,6 +74,7 @@ final class DataOrchestrator {
             group.addTask { await self.refreshMaxar() }
             group.addTask { await self.refreshWeatherGrid() }
             group.addTask { await self.refreshCapitalFlows() }
+            group.addTask { await self.refreshRFSensing() }
         }
 
         generateAlerts()
@@ -196,6 +205,74 @@ final class DataOrchestrator {
             await MainActor.run { self.weatherPins = pins }
         }
         feedStatuses["weather"] = true
+    }
+
+    // MARK: - RF Sensing Feeds (RuView)
+
+    func refreshRFSensing() async {
+        await withTaskGroup(of: Void.self) { group in
+            group.addTask { await self.refreshSensorNodes() }
+            group.addTask { await self.refreshPresence() }
+            group.addTask { await self.refreshWifiVitals() }
+            group.addTask { await self.refreshRFInterference() }
+        }
+        // Disaster survivors depend on earthquake data
+        await refreshDisasterSurvivors()
+    }
+
+    private func refreshSensorNodes() async {
+        do {
+            let data = try await rfSensingService.fetchSensorNodes()
+            await MainActor.run { self.sensorNodes = data }
+            feedStatuses["rfNodes"] = true
+        } catch {
+            feedStatuses["rfNodes"] = false
+            errors.append("RF Nodes: \(error.localizedDescription)")
+        }
+    }
+
+    private func refreshPresence() async {
+        do {
+            let data = try await rfSensingService.fetchPresenceDetections()
+            await MainActor.run { self.presenceDetections = data }
+            feedStatuses["rfPresence"] = true
+        } catch {
+            feedStatuses["rfPresence"] = false
+            errors.append("RF Presence: \(error.localizedDescription)")
+        }
+    }
+
+    private func refreshWifiVitals() async {
+        do {
+            let data = try await rfSensingService.fetchVitalSigns()
+            await MainActor.run { self.wifiVitalSigns = data }
+            feedStatuses["wifiVitals"] = true
+        } catch {
+            feedStatuses["wifiVitals"] = false
+            errors.append("WiFi Vitals: \(error.localizedDescription)")
+        }
+    }
+
+    private func refreshDisasterSurvivors() async {
+        do {
+            let data = try await rfSensingService.fetchDisasterSurvivors(nearEarthquakes: earthquakes)
+            await MainActor.run { self.disasterSurvivors = data }
+            feedStatuses["disasterResponse"] = true
+        } catch {
+            feedStatuses["disasterResponse"] = false
+            errors.append("Disaster Response: \(error.localizedDescription)")
+        }
+    }
+
+    private func refreshRFInterference() async {
+        do {
+            let data = try await rfSensingService.fetchRFInterference()
+            await MainActor.run { self.rfInterferenceZones = data }
+            feedStatuses["rfInterference"] = true
+        } catch {
+            feedStatuses["rfInterference"] = false
+            errors.append("RF Interference: \(error.localizedDescription)")
+        }
     }
 
     // MARK: - Capital Flow Feeds

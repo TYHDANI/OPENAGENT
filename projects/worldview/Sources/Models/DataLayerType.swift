@@ -51,6 +51,13 @@ enum DataLayerType: String, CaseIterable, Identifiable, Codable {
     case displacement = "Displacement"
     case internetOutages = "Internet Outages"
 
+    // RF Intelligence (from RuView WiFi-DensePose)
+    case wifiSensing = "WiFi Sensing"
+    case rfPresence = "RF Presence"
+    case vitalSigns = "Vital Signs"
+    case disasterResponse = "Disaster Response"
+    case rfInterference = "RF Interference"
+
     var id: String { rawValue }
 
     var icon: String {
@@ -87,6 +94,11 @@ enum DataLayerType: String, CaseIterable, Identifiable, Codable {
         case .protests: return "person.3"
         case .displacement: return "figure.walk.departure"
         case .internetOutages: return "wifi.slash"
+        case .wifiSensing: return "wifi.router"
+        case .rfPresence: return "person.wave.2"
+        case .vitalSigns: return "heart.text.clipboard"
+        case .disasterResponse: return "cross.case"
+        case .rfInterference: return "waveform.path.ecg.rectangle"
         }
     }
 
@@ -114,6 +126,11 @@ enum DataLayerType: String, CaseIterable, Identifiable, Codable {
         case .protests: return .yellow
         case .displacement: return .orange
         case .internetOutages: return .red
+        case .wifiSensing: return .cyan
+        case .rfPresence: return .green
+        case .vitalSigns: return .pink
+        case .disasterResponse: return .red
+        case .rfInterference: return .orange
         }
     }
 
@@ -128,6 +145,7 @@ enum DataLayerType: String, CaseIterable, Identifiable, Codable {
         case .news, .liveTVNews, .liveTVWeather, .webcams: return .media
         case .markets, .commodities: return .economic
         case .protests, .displacement, .internetOutages: return .social
+        case .wifiSensing, .rfPresence, .vitalSigns, .disasterResponse, .rfInterference: return .rfIntelligence
         }
     }
 }
@@ -142,6 +160,7 @@ enum LayerCategory: String, CaseIterable, Identifiable {
     case media = "Media & Feeds"
     case economic = "Economic"
     case social = "Social & Humanitarian"
+    case rfIntelligence = "RF Intelligence"
 
     var id: String { rawValue }
     var icon: String {
@@ -155,6 +174,7 @@ enum LayerCategory: String, CaseIterable, Identifiable {
         case .media: return "play.rectangle"
         case .economic: return "chart.bar"
         case .social: return "person.3"
+        case .rfIntelligence: return "wifi.router"
         }
     }
 }

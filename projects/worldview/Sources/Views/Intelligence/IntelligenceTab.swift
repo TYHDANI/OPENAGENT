@@ -6,6 +6,7 @@ struct IntelligenceTab: View {
 
     enum IntelSection: String, CaseIterable {
         case brief = "World Brief"
+        case rfSensing = "RF Sensing"
         case maxar = "Satellite Imagery"
         case satellites = "Satellite Tracker"
     }
@@ -28,6 +29,8 @@ struct IntelligenceTab: View {
                     switch selectedSection {
                     case .brief:
                         WorldBriefView()
+                    case .rfSensing:
+                        RFSensingView()
                     case .maxar:
                         MaxarEventListView()
                     case .satellites:
