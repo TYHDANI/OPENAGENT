@@ -85,6 +85,19 @@ monetization:
   default_pricing_tier: "tier_3"
   apple_commission_rate: 0.15
 
+# App Store Submission
+appstore_submission:
+  enabled: true
+  script: "orchestrator/appstore_submit.sh"
+  setup_script: "orchestrator/setup_signing.sh"
+  auto_submit_after_phase: 9   # Auto-submit after screenshots phase
+  auto_testflight: true
+  key_dir: "~/.appstore"
+  credentials_env:
+    team_id: "TEAM_ID"
+    key_id: "ASC_KEY_ID"
+    issuer_id: "ASC_ISSUER_ID"
+
 paths:
   projects_dir: "projects"
   ideas_dir: "ideas"

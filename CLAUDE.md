@@ -157,6 +157,15 @@ Build agent has specialized knowledge files loaded ONLY when relevant:
 - Capabilities: Twitter CRON posting, YouTube Shorts generation, cold email outreach
 - Note: Replace gpt4free with Claude/Qwen calls. AGPL license — modifications must be open-sourced.
 
+### App Store Submission (Automated)
+- Script: `orchestrator/appstore_submit.sh`
+- Setup: `orchestrator/setup_signing.sh` (one-time credential config)
+- Pipeline: archive → export IPA → upload → submit metadata → TestFlight
+- Batch mode: submits all apps at phase >= 7 that haven't been uploaded
+- Credentials: Team ID, API Key ID, Issuer ID in `~/.env.openagent`, AuthKey .p8 in `~/.appstore/`
+- Auto-triggers after Phase 9 (Screenshots) when `appstore_submission.auto_submit_after_phase` is set
+- State tracking: `uploaded_to_appstore`, `testflight_submitted`, `submission_status` in state.json
+
 ### Evaluator-Optimizer Loop (from claude-cookbooks)
 - Used in: Phase 3 (Build), Phase 4 (Code Review), Phase 5 (Quality)
 - Pattern: On failure, generate structured feedback → targeted fix agent → re-check only failing items

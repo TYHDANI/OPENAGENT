@@ -144,6 +144,40 @@ All of the following must be true before the pipeline advances to Agent 07:
 9. No placeholder or template text remains in any field (e.g., no "[INSERT HERE]").
 10. `state.json` updated with `appstore_prep_status: "complete"`.
 
+## Automated Submission (Post-Prep)
+
+After all listing artifacts are generated, the pipeline can automatically submit to App Store Connect:
+
+```bash
+bash orchestrator/appstore_submit.sh "$PROJECT_DIR" full-submit
+```
+
+**Full submission pipeline (5 steps):**
+1. **Archive** — `xcodebuild archive` with automatic code signing (Team ID + API key auth)
+2. **Export IPA** — `xcodebuild -exportArchive` with `ExportOptions.plist` (app-store method)
+3. **Upload** — `xcrun altool --upload-app` to App Store Connect
+4. **Submit Metadata** — Push description, keywords, subtitle via App Store Connect API
+5. **TestFlight** — Auto-submit build for beta review
+
+**Prerequisites (one-time setup):**
+```bash
+bash orchestrator/setup_signing.sh
+```
+This prompts for Team ID, API Key ID, Issuer ID, and .p8 key file location.
+
+**Batch submission (all ready apps):**
+```bash
+bash orchestrator/appstore_submit.sh projects/any_app batch
+```
+Submits all apps at phase >= 7 that haven't been uploaded yet.
+
+**State tracking:** After submission, `state.json` is updated with:
+- `archive_path` — path to .xcarchive
+- `ipa_path` — path to exported .ipa
+- `uploaded_to_appstore: true`
+- `testflight_submitted: true`
+- `submission_status: "processing"`
+
 ## Failure Handling
 
 | Condition | Action |
