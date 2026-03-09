@@ -123,6 +123,41 @@ enum AppHaptics {
 }
 #endif
 
+// MARK: - Cross-Platform View Modifiers
+
+extension View {
+    /// Applies .toolbarColorScheme(.dark, for: .navigationBar) on iOS, no-op on macOS
+    @ViewBuilder
+    func darkNavigationBar() -> some View {
+        #if os(iOS)
+        self.toolbarColorScheme(.dark, for: .navigationBar)
+        #else
+        self
+        #endif
+    }
+
+    /// Applies .navigationBarTitleDisplayMode(.inline) on iOS, no-op on macOS
+    @ViewBuilder
+    func inlineTitleDisplayMode() -> some View {
+        #if os(iOS)
+        self.navigationBarTitleDisplayMode(.inline)
+        #else
+        self
+        #endif
+    }
+
+    /// Applies .presentationDetents on iOS, no-op on macOS
+    @ViewBuilder
+    func sheetDetents() -> some View {
+        #if os(iOS)
+        self.presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        #else
+        self
+        #endif
+    }
+}
+
 enum AppGradient {
     static func accent(opacity: CGFloat = 1.0) -> LinearGradient {
         LinearGradient(

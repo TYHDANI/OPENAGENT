@@ -24,7 +24,7 @@ final class WearableAggregatorService {
             connections[idx].connectedAt = Date()
             await syncProvider(provider)
         } else {
-            var conn = WearableConnection(provider: provider, status: .syncing)
+            let conn = WearableConnection(provider: provider, status: .syncing)
             connections.append(conn)
             try? await Task.sleep(for: .seconds(1))
             if let idx = connections.firstIndex(where: { $0.provider == provider }) {
