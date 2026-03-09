@@ -109,7 +109,41 @@ Generate summary metrics:
 | Competitor launched major update | Trigger competitive analysis report |
 | No significant changes | Generate "steady state" report, schedule next check |
 
+### 7. Autonomous Content Loop (Larry-Style Self-Learning)
+Each growth cycle runs the content engine to generate, post, and learn:
+```bash
+bash orchestrator/content_engine.sh "$PROJECT_DIR" full-cycle
+```
+
+**Weekly content cycle:**
+1. Run `analyze` — pull metrics from posted content
+2. Run `learn` — update RULES.md with winning patterns, retire losers
+3. Run `generate` — create next week's batch using improved rules
+4. Run `post` — queue posts for the week
+
+**Self-learning loop details:**
+- `content/RULES.md` grows smarter each cycle (like Larry's 500+ rules)
+- Posts are classified in 2x2 matrix:
+  - High views + high conversions = SCALE this content type
+  - High views + low conversions = hook works, fix CTA
+  - Low views + high conversions = content converts, needs better hooks
+  - Low views + low conversions = RETIRE this approach
+- Winning hook formulas are promoted, failing ones are moved to "Retired Approaches"
+- A/B test results are logged and inform next batch generation
+- Goal: compound improvement — each week's content outperforms the last
+
+**RevenueCat integration (when configured):**
+- Correlate post timestamps with download/subscription spikes
+- Identify which specific posts drove paying users
+- Optimize for conversions, not just views
+
+**Content volume targets:**
+- Week 1-2: 7 posts/week (1/day baseline)
+- Week 3-4: 14 posts/week (2/day as rules improve)
+- Month 2+: 21 posts/week (3/day across platforms)
+
 ## Cycle Frequency
-- **Weekly**: Review mining, ASO check, revenue metrics
+- **Every 2 days**: Content engine generate + post cycle
+- **Weekly**: Review mining, ASO check, revenue metrics, content analytics + learning
 - **Monthly**: Full competitor analysis, feature roadmap update
 - **Quarterly**: Comprehensive growth strategy review with Sonnet

@@ -109,3 +109,26 @@ health_check:
 monitor:
   enabled: true
   script: "orchestrator/pipeline_monitor.sh"
+
+# Content Engine (Larry-style autonomous posting)
+content_engine:
+  enabled: true
+  script: "orchestrator/content_engine.sh"
+  posts_per_week_initial: 7
+  posts_per_week_max: 21
+  platforms: [tiktok, instagram, twitter, reddit]
+  hook_formulas:
+    - "third_party_conflict"   # "[Person] said [doubt] → showed them → [reaction]"
+    - "before_after"           # "I used to [pain]. Then I found [app]."
+    - "secret_discovery"       # "I found an app that [unexpected thing]"
+  ab_testing: true
+  self_learning: true
+  analytics_cycle: "weekly"
+  tiktok_draft_mode: true      # Human adds trending audio before publishing
+
+# Wave AI Integration
+wave_ai:
+  enabled: true
+  api_base: "https://api.wave.co/v1"
+  key_env: "WAVE_API_KEY"
+  use_for: [research_transcription, content_ideas, competitor_analysis]

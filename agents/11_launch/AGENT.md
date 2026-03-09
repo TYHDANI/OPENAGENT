@@ -104,9 +104,40 @@ Compile `launch_report.json`:
 }
 ```
 
+### 7. Autonomous Content Engine (Larry-Style)
+Run the self-learning content engine to generate a week of posts:
+```bash
+bash orchestrator/content_engine.sh "$PROJECT_DIR" full-cycle
+```
+
+This creates:
+- `content/RULES.md` — Self-updating rules file (hook formulas, platform rules, retired approaches)
+- `content/LEARNINGS.md` — Performance log updated after each analytics cycle
+- `content/batch_YYYYMMDD.json` — 7 posts (2 TikTok, 2 Instagram, 2 Twitter, 1 Reddit)
+- `content/post_queue.json` — Queued/posted tracking
+- `content/analytics.jsonl` — Performance data for self-learning
+
+**Content Loop Architecture:**
+1. **Generate** — Claude creates 7 posts using RULES.md hook formulas, A/B testing variants
+2. **Post** — Queue content for each platform (TikTok as drafts, others scheduled)
+3. **Analyze** — Pull engagement metrics, correlate with downloads
+4. **Learn** — Update RULES.md with winning patterns, retire underperformers
+5. **Repeat** — Next batch reads updated rules, generating progressively better content
+
+**Hook Formula Priority (from Larry research):**
+- Formula 1: Third-Party Conflict — "[Person] said [doubt] → showed them → [reaction]" (50K+ avg views)
+- Formula 2: Before/After Transformation — "I used to [pain]. Then I found [app]."
+- Formula 3: Secret/Discovery — "I found an app that [unexpected thing]"
+
+**Key principles:**
+- NEVER directly sell — lead with entertainment/story
+- Every post is a data point that makes RULES.md smarter
+- A/B test 2 hook variants per batch, track which wins
+- TikTok drafts only (human adds trending audio for algorithmic boost)
+
 ## Decision Table
 | Condition | Action |
 |-----------|--------|
-| All 5 channels have content generated | PASS — set status "ready_to_publish", advance to Phase 12 |
+| All 5 channels + content engine have content generated | PASS — set status "ready_to_publish", advance to Phase 12 |
 | Content generated but user hasn't approved publishing | Hold at "pending_approval" |
 | Missing promo inputs (no social_posts.md, etc.) | FAIL — loop back to Phase 10 |

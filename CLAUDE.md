@@ -77,21 +77,31 @@ Build agent has specialized knowledge files loaded ONLY when relevant:
 - Added: App Store review response templates
 - Enhanced: Social posts optimized for each platform's algorithm
 
-**Phase 11 — Launch** (NEW — from MoneyPrinterV2)
+**Phase 11 — Launch** (NEW — from MoneyPrinterV2 + Larry/OpenClaw)
 - Automated social media posting via CRON scheduling
 - YouTube Shorts generation from video_prompt.md
 - Cold email outreach to press/influencers from email_templates.md
 - Product Hunt launch preparation
 - Reddit seeding strategy execution
+- **NEW: Larry-style autonomous content engine** (`orchestrator/content_engine.sh`)
+  - Self-learning `content/RULES.md` with hook formulas (updated by analytics)
+  - 7-post weekly batches with A/B variant testing
+  - TikTok draft posting (human adds trending audio)
+  - Hook formulas: Third-Party Conflict, Before/After, Secret/Discovery
 - Output: `launch_report.json` with published URLs and metrics
 
-**Phase 12 — Growth** (NEW)
+**Phase 12 — Growth** (NEW — with self-learning content loop)
 - ASO iteration based on keyword ranking data
 - App Store review monitoring and response generation
 - Feature request extraction from reviews
 - A/B test recommendations for screenshots and descriptions
 - Revenue analytics and pricing optimization suggestions
 - Competitor monitoring for new features/pricing changes
+- **NEW: Autonomous content loop** (generates → posts → analyzes → learns → repeats)
+  - 2x2 performance matrix: views × conversions → scale/fix/retire decisions
+  - `content/LEARNINGS.md` accumulates patterns over time (like Larry's 500+ rules)
+  - Content volume ramps: 7/week → 14/week → 21/week as rules improve
+  - RevenueCat integration for conversion tracking (when configured)
 - Output: `growth_plan.json` with prioritized actions
 
 ### Phase Migration Map (Old → New)
