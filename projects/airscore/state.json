@@ -1,0 +1,27 @@
+{
+  "project": "airscore",
+  "display_name": "AirScore",
+  "phase": 4,
+  "phase_name": "code_review",
+  "status": "active",
+  "fail_count": 0,
+  "created_at": "2026-03-08T00:00:00Z",
+  "updated_at": "2026-03-08T00:00:00Z",
+  "combined_from": ["airscore-pro", "home-health-os"],
+  "description": "Smart Home Air Intelligence — B2C home air quality monitoring + B2B fleet HVAC management in one app",
+  "subscription_tiers": ["Free", "Pro $9.99/mo", "Fleet $29.99/mo"],
+  "target_market": "Health-conscious homeowners + commercial property managers",
+  "platforms": ["iOS 17+", "macOS 14+"],
+  "tech_stack": ["SwiftUI", "@Observable", "StoreKit 2", "JSON persistence"],
+  "features": [
+    "EPA-based AQI calculation from PM2.5/PM10 readings",
+    "Multi-room monitoring with per-room air quality scores",
+    "6 pollutant metrics: PM2.5, PM10, CO2, VOC, temperature, humidity",
+    "Filter lifecycle tracking with change reminders",
+    "Multi-property support for B2C",
+    "Fleet dashboard for B2B property management",
+    "24-hour trend charts with metric breakdowns",
+    "Smart alerts for AQI spikes, CO2, VOC, humidity",
+    "Teal-on-dark clean design system"
+  ]
+}
